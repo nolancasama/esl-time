@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>What Time Is It?</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <section id="screen-levels" class="screen is-visible" aria-labelledby="level-title">
+    <header class="choose-head">
+      <p class="eyebrow">ESL TIME PRACTICE</p>
+      <h1 id="level-title">What Time Is It?</h1>
+      <p class="jp-copy">レベルをえらぼう</p>
+    </header>
+    <div id="level-grid" class="level-grid"></div>
+    <button id="level-settings" class="button button-quiet" type="button">⚙ Teacher Settings</button>
+  </section>
+
+  <section id="screen-game" class="screen" aria-label="Telling time game">
+    <div class="game-shell">
+      <header class="top-bar">
+        <button id="game-back" class="top-button" type="button">← Back</button>
+        <div id="game-progress" class="round-progress" aria-live="polite">0 correct · 1 / 12</div>
+        <button id="game-settings" class="top-button" type="button" aria-label="Settings">⚙ Settings</button>
+      </header>
+
+      <main id="stage" class="stage" aria-label="Placeholder scene"></main>
+
+      <div class="answer-dock">
+        <div class="feedback-line" id="feedback" aria-live="polite"></div>
+        <div id="speech-controls" class="speech-controls">
+          <button id="hold-to-talk" class="hold-button" type="button">
+            <span class="hold-main">🎙 Hold to Talk</span>
+            <span class="hold-help">押している間、話そう</span>
+          </button>
+        </div>
+        <form id="typed-form" class="typed-form" hidden>
+          <label for="typed-answer">Type the time you would say</label>
+          <div class="typed-row">
+            <input id="typed-answer" type="text" inputmode="text" autocomplete="off" spellcheck="false">
+            <button class="button button-primary" type="submit">Check</button>
+          </div>
+        </form>
+        <p id="fallback-message" class="fallback-message" hidden>
+          Speech recognition is unavailable. Type your answer instead.
+        </p>
+        <p id="transcript" class="transcript" hidden></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-summary" class="screen summary-screen" aria-labelledby="summary-title">
+    <p class="eyebrow">SESSION COMPLETE</p>
+    <h2 id="summary-title">Nice work!</h2>
+    <p class="jp-copy">よくできました！</p>
+    <div class="summary-stats">
+      <div class="summary-stat"><strong id="summary-correct">0</strong><span>Correct</span></div>
+      <div class="summary-stat"><strong id="summary-first">0</strong><span>First try</span></div>
+    </div>
+    <div class="practice-panel">
+      <h3>Times to practise</h3>
+      <div id="practice-times" class="practice-times"></div>
+    </div>
+    <div class="button-row">
+      <button id="practice-again" class="button button-primary" type="button">Practice Again</button>
+      <button id="play-again" class="button" type="button">Play Again</button>
+      <button id="change-level" class="button button-quiet" type="button">Change Level</button>
+    </div>
+  </section>
+
+  <section id="screen-settings" class="screen settings-screen" aria-labelledby="settings-title">
+    <div class="settings-panel">
+      <h2 id="settings-title">Teacher Settings</h2>
+      <p class="settings-intro">Changes are saved on this device.</p>
+
+      <div class="setting-row">
+        <div><strong>Level</strong><small>Choose the time pool.</small></div>
+        <div class="segments" data-setting="level">
+          <button type="button" data-value="1">1</button><button type="button" data-value="2">2</button>
+          <button type="button" data-value="3">3</button><button type="button" data-value="4">4</button>
+          <button type="button" data-value="5">5</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div><strong>Practice mode</strong><small>Difficult uses saved missed times when enough exist.</small></div>
+        <div class="segments" data-setting="practiceMode">
+          <button type="button" data-value="normal">Normal</button><button type="button" data-value="difficult">Difficult</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div><strong>Character audio</strong><small>Play a scene voice when one is added.</small></div>
+        <div class="segments" data-setting="characterAudio">
+          <button type="button" data-value="true">On</button><button type="button" data-value="false">Off</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div><strong>Feedback sounds</strong><small>Short correct and try-again sounds.</small></div>
+        <div class="segments" data-setting="feedbackSounds">
+          <button type="button" data-value="true">On</button><button type="button" data-value="false">Off</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div><strong>Reveal after</strong><small>Genuine wrong attempts before showing the model.</small></div>
+        <div class="segments" data-setting="revealAfter">
+          <button type="button" data-value="2">2 attempts</button><button type="button" data-value="3">3 attempts</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div><strong>Show transcript (teacher)</strong><small>Off by default; never needed by students.</small></div>
+        <div class="segments" data-setting="showTranscript">
+          <button type="button" data-value="true">On</button><button type="button" data-value="false">Off</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div><strong>Reset progress</strong><small>Clear all saved time records.</small></div>
+        <button id="reset-progress" class="button button-danger" type="button">Reset</button>
+      </div>
+      <div class="button-row settings-actions">
+        <button id="settings-done" class="button button-primary" type="button">Done</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

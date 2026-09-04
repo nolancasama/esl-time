@@ -80,3 +80,45 @@ by a typed-answer input running through the identical `matchTime` path.
 Why: without it the game is a dead screen on a browser a classroom may well be
 using, and the failure would look like a broken game rather than a missing
 capability.
+
+## 2026-09-04 — Sessions contain twelve rounds
+
+A session ends after twelve completed targets, while the time and scene decks
+continue to schedule independently.
+
+Why: V1 has no session-length setting, but its progress indicator and summary
+need a finite denominator. Twelve rounds gives each placeholder scene one turn
+in the first shuffled scene pass without coupling any scene to a target time.
+
+## 2026-09-04 — Small clocks have an 88 CSS-pixel readability floor
+
+Scene clock diameters follow their authored percentage except when that would
+make the complete numbered clock smaller than 88 CSS pixels.
+
+Why: reserving space for the top bar and 96-pixel hold control at the frozen
+1024x600 minimum makes a literal 16% clock roughly 60 pixels wide. Twelve
+numerals and the fractional hour-hand position are not readable at that size.
+The floor preserves the learning content; authored percentage sizing resumes
+automatically when the stage is large enough.
+
+## 2026-09-04 — A time enters difficult practice when its answer is revealed
+
+Genuine wrong attempts increment the current round's reveal counter. The
+persistent miss is recorded once if that counter reaches the reveal threshold;
+an answer corrected before reveal is not added to difficult practice.
+
+Why: the frozen round loop explicitly adds a time to the difficult pool after
+the reveal threshold. `no-time`, `empty`, and sub-300 ms holds remain free
+retries and never affect either progress or first-try credit.
+
+## 2026-09-04 — Authored clock sizes floor at 20%, above the pixel rescue
+
+Scene clock percentages start at 20% rather than the original 16-19%. This sits
+on top of the 88 CSS-pixel floor above, which stays as the last-resort rescue.
+
+Why: the pixel floor keeps a clock legible on a cramped stage, but a scene
+authored small enough to hit it is permanently pinned to the emergency minimum,
+which is not the same as being sized deliberately. The clock is the content of
+this game, so the authored range should clear the floor on its own at ordinary
+classroom sizes and let the rescue apply only where it is genuinely needed.
+Size variety across scenes is preserved — the range is now 20% to 30%.

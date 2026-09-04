@@ -209,8 +209,9 @@ answer is not revealed until `revealAfter` attempts.
 
 Clock positions must genuinely vary — spread across upper-left, upper-right,
 centre-left, centre-right, high-wall, lower-side, and one partly behind where a
-foreground character would stand. Sizes vary too. No two scenes share a
-position.
+foreground character would stand. Sizes vary too, with an authored floor of 20%
+so a clock is never pinned to the emergency pixel minimum on an ordinary
+classroom screen. No two scenes share a position.
 
 **Layering is fixed now even though only one layer has art:** every scene
 renders `background layer` / `clock layer` / `foreground character layer`, in

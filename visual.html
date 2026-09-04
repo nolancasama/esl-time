@@ -1,0 +1,29 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Clock contact sheet</title>
+<link rel="stylesheet" href="styles/main.css">
+<style>
+  body { margin:0; background:#101418; font:14px system-ui, sans-serif; }
+  .sheet { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; padding:10px; }
+  .cell { position:relative; aspect-ratio:16/10; overflow:hidden; border-radius:8px; }
+  .cap { position:absolute; left:6px; bottom:4px; z-index:9; color:#fff; font-size:11px;
+         background:rgba(0,0,0,.55); padding:2px 6px; border-radius:4px; }
+</style>
+<div class="sheet" id="sheet"></div>
+<script type="module">
+  import { SCENES } from './src/data/scenes.js';
+  import { mountScene } from './src/scene.js';
+  const times = [[7,0],[7,15],[7,30],[7,45],[2,5],[11,20],[4,35],[9,50],[12,0],[3,25],[6,40],[10,55]];
+  const sheet = document.getElementById('sheet');
+  SCENES.forEach((scene, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    sheet.append(cell);
+    const [h,m] = times[i];
+    mountScene(cell, scene, { h, m });
+    const cap = document.createElement('div');
+    cap.className = 'cap';
+    cap.textContent = `${scene.name} · clock ${scene.clock.size}% · ${h}:${String(m).padStart(2,'0')}`;
+    cell.append(cap);
+  });
+</script>
