@@ -1,0 +1,39 @@
+{
+  "task": "Implement src/time-match.js and src/time-match.test.mjs for the ESL telling-time game, exactly to the frozen spec in SPEC.md sections 3.1 through 3.6. This is pure logic: no DOM, no browser APIs, no dependencies, ES modules.",
+  "requirements": [
+    "Create src/time-match.js exporting exactly: normalizeTranscript(raw), parseUtterance(raw), matchTime(target, transcripts), spokenForm(target), spokenWords(target). Signatures and return shapes are frozen in SPEC.md 3.1 — do not rename, do not add or remove exports.",
+    "Implement the normalisation pipeline of SPEC.md 3.3 in the stated order. Speech engines return times as NUMERALS far more often than as words, so '7:15', '715' and '7 15' must all normalise the same as 'seven fifteen', and '7 o'clock' the same as 'seven o'clock'. This is the single most important behaviour in the module.",
+    "Implement the tens+units fold of step 5 exactly: only 20/30/40/50 followed by 1..9 folds. 'seven thirty five' -> 7 35. 'ten thirty' must NOT fold and stays 10 30.",
+    "Parse the cleaned token list as an ORDERED SEQUENCE, matching the accepted structures in SPEC.md 3.4. Never scan for the right numbers appearing anywhere in the string — order carries the grammar.",
+    "Enforce the o'clock rule of SPEC.md 3.5: o'clock is valid only when minutes are zero. 'seven fifteen o'clock' and 'seven o'clock fifteen' must return reason 'bad-grammar', NOT 'wrong-time'. Any number token left over after a structure is consumed is also 'bad-grammar'.",
+    "Distinguish 'bad-grammar' (structure invalid) from 'wrong-time' (structure valid, time is not the target). 'seven o'clock' against target 7:15 is 'wrong-time', because the structure itself is fine.",
+    "Accept the past/to forms in SPEC.md 3.4 ('half past seven', 'quarter to eight', 'twenty past three') as correct with preferred:false. They are valid English and must not be marked wrong, even though the game does not teach them.",
+    "Implement the alternatives policy of SPEC.md 3.2 exactly: transcripts[0] alone decides grammar; later alternatives are consulted only to rescue a 'no-time' or 'empty' result. Getting this wrong silently defeats the o'clock rule.",
+    "spokenForm/spokenWords produce the taught model form: minutes 0 -> \"It's seven o'clock.\", minutes 1-9 -> \"It's seven oh five.\", otherwise -> \"It's seven fifteen.\" with minutes as English words ('forty-five', 'twenty-five').",
+    "Create src/time-match.test.mjs: a plain node assertion table (no test framework, no dependencies) run with `node src/time-match.test.mjs`, exiting non-zero on failure and printing a pass/fail count.",
+    "The test table must cover: every row of the accepted-structures table in SPEC.md 3.4; every row of the rejected-structures table in 3.5; numeral-form STT variants ('7:15', '715', '7 15', '7 o'clock') for at least six different targets; filler-prefixed utterances ('uh it's seven fifteen', 'I think it's seven fifteen', 'it is seven fifteen'); AM/PM trailing on whole hours and on non-whole hours; 'seven oh five' and 'seven five' for 7:05; every whole hour 1:00-12:00; and a sweep over the level-4 five-minute times asserting that spokenWords() round-trips back through matchTime() as a match.",
+    "Each assertion must state the expected reason, not merely ok true/false, so a wrong-time/bad-grammar mixup fails the suite."
+  ],
+  "constraints": [
+    "SPEC.md is frozen. Implement it; do not redesign it. If a genuine ambiguity or contradiction is found, implement the most reasonable reading and note it in the summary rather than inventing a different design.",
+    "Do not create index.html, styles, scene data, speech, game loop, or any other module — this work order is the two files named above and nothing else.",
+    "No dependencies, no package installs, no build step. ES module syntax only.",
+    "No DOM or browser globals: the module must run under plain node.",
+    "Comment the WHY of the non-obvious rules (the numeral-form normalisation, the tens+units fold, the alternatives policy, bad-grammar vs wrong-time). Match the commenting style of .ai/reference/ref-match.js — explain reasoning, not mechanics.",
+    "Do not modify SPEC.md.",
+    "Everything you need is inside this project directory. .ai/reference/ holds read-only copies of the Sight Word Factory game for structural and commenting-style reference only - never import from it, never modify it, never ship it. Do not attempt to read anything outside this project root."
+  ],
+  "startingPoints": [
+    "SPEC.md",
+    ".ai/reference/ref-match.js"
+  ],
+  "validation": [
+    "node src/time-match.test.mjs"
+  ],
+  "category": "logic",
+  "complexity": "medium",
+  "bounded": true,
+  "exploration": "none",
+  "risk": "medium",
+  "expectedCost": "medium"
+}

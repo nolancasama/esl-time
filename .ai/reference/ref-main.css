@@ -1,0 +1,573 @@
+/**
+ * Word Scanner — presentation.
+ *
+ * VISUAL HIERARCHY (highest first)
+ *   1. the sight word
+ *   2. the pronunciation gate
+ *   3. the conveyor
+ *   4. the student's camera
+ *   5. secondary UI
+ *
+ * The camera feed is the background, which is the hard constraint here: it is a
+ * moving, unpredictably-lit image of a room. Every UI element therefore carries
+ * its own contrast (a scrim, a plate, or a shadow) rather than relying on the
+ * background being dark.
+ */
+
+:root {
+  --bg: #0e1622;
+  --bg-panel: #182333;
+  --bg-panel-2: #213043;
+  --line: #31435b;
+
+  --ink: #eff5fc;
+  --ink-dim: #9db0c8;
+
+  --cyan: #5ec8ff;      /* the machine: gate, belt lights, scanner */
+  --green: #4ade80;     /* accepted */
+  --amber: #ffb454;     /* blocked — never red */
+
+  /* The word: near-black on its pale card, the strongest contrast on screen. */
+  --word-ink: #0d1420;
+
+  --radius: 18px;
+  --tap: 56px;
+
+  --font: "Baloo 2", "Quicksand", "Nunito", "Varela Round",
+          "Hiragino Maru Gothic ProN", "Noto Sans JP", system-ui,
+          -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+/* ==========================================================================
+   Screens
+   ========================================================================== */
+
+.screen { position: fixed; inset: 0; display: none; flex-direction: column; overflow-y: auto; }
+.screen.is-visible { display: flex; }
+
+/* --- level select -------------------------------------------------------- */
+
+#screen-levels {
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  padding: 32px 20px;
+  background: radial-gradient(1100px 600px at 50% 0%, #1e3550 0%, transparent 60%), var(--bg);
+}
+
+.choose-head { text-align: center; }
+
+.choose-title {
+  margin: 0;
+  font-size: clamp(28px, 5.4vw, 54px);
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.choose-jp {
+  margin: 6px 0 0;
+  font-size: clamp(13px, 1.8vw, 17px);
+  font-weight: 600;
+  color: var(--ink-dim);
+}
+
+/* Five large buttons. Progress is present but deliberately secondary. */
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  width: min(1100px, 100%);
+}
+
+.level-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 26px 22px;
+  min-height: 150px;
+  text-align: left;
+  border-radius: var(--radius);
+  background: linear-gradient(160deg, var(--bg-panel-2), var(--bg-panel));
+  border: 2px solid var(--line);
+  transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease;
+}
+.level-card:hover, .level-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--cyan);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, .5);
+  outline: none;
+}
+.level-card:active { transform: translateY(0); }
+
+.level-name {
+  font-size: clamp(26px, 3.2vw, 36px);
+  font-weight: 800;
+  letter-spacing: .5px;
+}
+
+.level-meta {
+  margin-top: auto;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-dim);
+}
+
+.level-bar {
+  height: 7px;
+  border-radius: 99px;
+  background: #101a27;
+  overflow: hidden;
+  margin-bottom: 7px;
+}
+.level-bar > i {
+  display: block; height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--green), #86f0b0);
+}
+
+/* --- buttons ------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: var(--tap);
+  padding: 14px 30px;
+  border-radius: 999px;
+  font-size: clamp(16px, 2.1vw, 20px);
+  font-weight: 800;
+  letter-spacing: .4px;
+  background: var(--bg-panel-2);
+  border: 2px solid var(--line);
+  color: var(--ink);
+  transition: transform .12s ease, filter .12s ease;
+}
+.btn:hover { filter: brightness(1.15); }
+.btn:active { transform: scale(.97); }
+
+.btn-primary {
+  background: linear-gradient(180deg, #7ad4ff, var(--cyan));
+  border-color: #9adfff;
+  color: #06202f;
+}
+.btn-ghost { background: transparent; }
+.btn-small { min-height: 44px; padding: 10px 22px; font-size: 15px; }
+.btn-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+/* --- start gate ---------------------------------------------------------- */
+
+#screen-start {
+  align-items: center; justify-content: center; text-align: center;
+  gap: 18px; padding: 30px;
+}
+.start-level {
+  font-size: clamp(30px, 6vw, 64px);
+  font-weight: 800;
+  color: var(--cyan);
+  line-height: 1;
+}
+.start-ready { margin: 0; font-size: clamp(17px, 2.4vw, 23px); font-weight: 700; }
+.start-ready span { color: var(--ink-dim); font-size: .8em; margin-left: 8px; }
+.btn-start {
+  min-width: min(330px, 80vw);
+  min-height: 86px;
+  font-size: clamp(26px, 4.4vw, 38px);
+}
+.start-note {
+  max-width: 520px; margin: 0;
+  color: var(--ink-dim); font-size: clamp(13px, 1.8vw, 16px);
+  font-weight: 600; line-height: 1.5;
+}
+
+/* ==========================================================================
+   Game screen
+   ========================================================================== */
+
+#screen-game { display: none; }
+#screen-game.is-visible { display: block; }
+
+.stage { position: fixed; inset: 0; overflow: hidden; background: var(--bg); }
+
+/*
+ * The selfie camera IS the background — full bleed, not a webcam inset.
+ * Mirrored horizontally because that is how people expect to see themselves.
+ */
+/*
+ * Stage layers are ordered explicitly rather than by DOM insertion order. The
+ * video is appended by SelfieCamera and the canvas by ConveyorScene, both at
+ * runtime, so relying on append timing left the video painting *over* the
+ * grounding scrim — which silently made the scrim do nothing over a live feed.
+ * It looked correct only because a missing camera hides the video entirely.
+ *   0 camera · 1 scrim · 2 conveyor · 3 word labels   (HUD sits at 4+)
+ */
+.selfie-video {
+  position: absolute; inset: 0;
+  z-index: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+/* Without a camera, a calm gradient stands in and nothing else changes. */
+.stage.no-camera { background: radial-gradient(900px 700px at 50% 25%, #24374f 0%, #0e1622 70%); }
+.stage.no-camera .selfie-video { display: none; }
+
+/*
+ * Grounding scrim. A live room can be bright, busy, and low contrast, which
+ * would swallow the conveyor and the HUD. This darkens the edges and the lower
+ * third — where the belt sits — without hiding the student's face.
+ */
+.camera-scrim {
+  position: absolute; inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(to top, rgba(8, 14, 22, .82) 0%, rgba(8, 14, 22, .35) 32%, rgba(8, 14, 22, 0) 58%),
+    radial-gradient(120% 90% at 50% 40%, rgba(8, 14, 22, 0) 45%, rgba(8, 14, 22, .6) 100%);
+}
+
+.game-canvas { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; display: block; }
+
+/* Word labels sit above the canvas so text stays perfectly sharp. */
+.label-layer { position: absolute; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; }
+
+.word-label {
+  position: absolute; top: 0; left: 0;
+  will-change: transform, font-size, opacity;
+  color: var(--word-ink);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+  text-rendering: optimizeLegibility;
+  transition: color .12s ease;
+}
+
+/*
+ * NOTE: never animate transform, opacity, or filter on .word-label.
+ * labels.js rewrites transform and opacity every frame to track the 3D card;
+ * a CSS animation on those properties overrides it and the word drifts off its
+ * card. Word state is expressed through the 3D card and the gate instead.
+ */
+.word-label.is-active { text-shadow: 0 2px 0 rgba(255, 255, 255, .6); }
+.word-label.is-pass { color: #0b7a3d; }
+.word-label.is-block { color: #8a5310; }
+
+/* --- HUD ----------------------------------------------------------------- */
+
+.hud {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  padding: 16px clamp(14px, 3vw, 28px);
+}
+
+.hud-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: flex-start;
+  gap: 14px;
+}
+.hud-left { display: flex; gap: 10px; flex-wrap: wrap; }
+.hud-right { display: flex; justify-self: end; align-items: flex-start; gap: 10px; }
+
+.hud-chip {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: rgba(10, 16, 26, .66);
+  border: 1px solid rgba(255, 255, 255, .12);
+  backdrop-filter: blur(8px);
+  font-weight: 700;
+  font-size: clamp(13px, 1.6vw, 16px);
+}
+
+/* Streak is present but small — the word and gate stay the focus. */
+.streak-chip { color: var(--amber); opacity: .82; }
+.streak-chip.is-hot { border-color: var(--amber); }
+
+.timer-chip {
+  min-width: 78px;
+  justify-content: center;
+  padding-inline: 20px;
+  color: var(--ink);
+  font-size: clamp(20px, 2.8vw, 28px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.timer-chip.is-urgent {
+  color: var(--amber);
+  border-color: rgba(255, 180, 84, .8);
+  animation: timer-urgent .8s ease-in-out infinite;
+}
+@keyframes timer-urgent {
+  50% { transform: scale(1.045); box-shadow: 0 0 20px rgba(255, 180, 84, .2); }
+}
+
+.icon-btn {
+  pointer-events: auto;
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: rgba(10, 16, 26, .66);
+  border: 1px solid rgba(255, 255, 255, .12);
+  display: grid; place-items: center;
+  font-size: 19px;
+  backdrop-filter: blur(8px);
+}
+.icon-btn:hover { filter: brightness(1.25); }
+
+.mic-dot { width: 11px; height: 11px; border-radius: 50%; background: #5a6a80; flex: none; }
+.mic-dot.is-listening { background: var(--green); animation: mic-ping 1.9s ease-out infinite; }
+.mic-dot.is-paused { background: var(--amber); }
+.mic-dot.is-off { background: #e0575c; }
+@keyframes mic-ping {
+  0%   { box-shadow: 0 0 0 0 rgba(74, 222, 128, .55); }
+  70%  { box-shadow: 0 0 0 11px rgba(74, 222, 128, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+
+/* The belt is staged but locked behind this pre-round beat. */
+.countdown {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: none;
+  place-items: center;
+  pointer-events: none;
+}
+.countdown.is-visible { display: grid; }
+.countdown span {
+  min-width: 1.5em;
+  text-align: center;
+  color: #fff;
+  font-size: clamp(92px, 20vw, 220px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .02em;
+  text-shadow: 0 8px 34px rgba(0, 0, 0, .85), 0 0 28px rgba(94, 200, 255, .45);
+}
+.countdown.is-beat span { animation: countdown-beat .42s ease-out both; }
+@keyframes countdown-beat {
+  from { opacity: .2; transform: scale(.76); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* --- result feedback ----------------------------------------------------- */
+
+/*
+ * Sits low, under the gate, so it never covers the word. Short and quiet by
+ * design: the physical movement of the card communicates the result, and this
+ * only names it.
+ */
+.feedback {
+  position: fixed;
+  left: 50%; bottom: 7%;
+  transform: translate(-50%, 10px);
+  pointer-events: none;
+  text-align: center;
+  opacity: 0;
+  transition: opacity .18s ease, transform .18s ease;
+  z-index: 4;
+}
+.feedback.is-visible { opacity: 1; transform: translate(-50%, 0); }
+
+.feedback-en {
+  font-size: clamp(24px, 4.2vw, 44px);
+  font-weight: 800;
+  text-shadow: 0 3px 18px rgba(0, 0, 0, .85);
+}
+.feedback-jp {
+  font-size: clamp(12px, 1.6vw, 16px);
+  font-weight: 600;
+  color: var(--ink-dim);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, .8);
+}
+.feedback.kind-pass .feedback-en { color: var(--green); }
+/* A modelled pronunciation is neutral information, not a scolding. */
+.feedback.kind-tts .feedback-en { color: #ffffff; }
+
+/* Test mode must be unmistakable and never look like student UI. */
+.dev-bar {
+  position: fixed; left: 50%; bottom: 0;
+  transform: translateX(-50%);
+  display: none; align-items: center; gap: 12px;
+  padding: 8px 20px;
+  border-radius: 12px 12px 0 0;
+  background: repeating-linear-gradient(45deg, #33291a, #33291a 9px, #272014 9px, #272014 18px);
+  border: 1px solid #6b5a2a;
+  border-bottom: none;
+  color: #ffd79a;
+  font-size: 12.5px; font-weight: 700;
+  z-index: 6;
+  pointer-events: none;
+}
+.dev-bar.is-visible { display: flex; }
+
+/* ==========================================================================
+   Summary
+   ========================================================================== */
+
+#screen-summary {
+  align-items: center; justify-content: center;
+  gap: 6px;
+  padding: 32px 20px;
+  background: radial-gradient(900px 500px at 50% 10%, #1f3a4e 0%, transparent 60%), var(--bg);
+}
+
+.summary-title {
+  margin: 0;
+  font-size: clamp(32px, 6vw, 58px);
+  font-weight: 800;
+  color: var(--amber);
+  letter-spacing: 1px;
+}
+.summary-jp { color: var(--ink-dim); font-weight: 600; margin: 2px 0 20px; }
+
+.summary-score {
+  color: var(--green);
+  font-size: clamp(44px, 8vw, 82px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .5px;
+  text-align: center;
+}
+.summary-highlights {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  margin: 8px 0 2px;
+  color: var(--ink-dim);
+  font-size: clamp(15px, 2vw, 19px);
+  font-weight: 700;
+}
+.summary-highlights strong { color: var(--ink); }
+.new-best {
+  visibility: hidden;
+  min-height: 28px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  color: #082216;
+  background: var(--green);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .7px;
+}
+.new-best.is-visible { visibility: visible; }
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  width: min(760px, 100%);
+  margin-bottom: 20px;
+}
+.stat {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px; text-align: center;
+}
+.stat-num { font-size: clamp(26px, 4vw, 38px); font-weight: 800; color: var(--cyan); }
+.stat-label { font-size: 13px; font-weight: 700; color: var(--ink-dim); margin-top: 2px; }
+
+.practice-list {
+  width: min(760px, 100%);
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 22px;
+}
+.practice-head { font-size: 17px; font-weight: 800; color: var(--amber); margin-bottom: 11px; }
+.word-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.word-chip {
+  padding: 7px 14px; border-radius: 999px;
+  background: var(--bg-panel-2); border: 1px solid var(--line);
+  font-size: 17px; font-weight: 700;
+}
+
+/* ==========================================================================
+   Settings
+   ========================================================================== */
+
+#screen-settings { align-items: center; padding: 32px 20px; background: var(--bg); }
+.settings-panel {
+  width: min(620px, 100%);
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+.settings-title { font-size: 26px; font-weight: 800; margin: 0 0 4px; }
+.settings-note { color: var(--ink-dim); font-size: 14px; font-weight: 600; margin: 0 0 18px; }
+
+.setting {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+.setting-label { font-weight: 700; font-size: 16px; }
+.setting-hint { display: block; font-weight: 600; font-size: 12.5px; color: var(--ink-dim); margin-top: 2px; }
+
+.seg { display: flex; gap: 6px; flex: none; }
+.seg button {
+  min-height: 42px; padding: 0 15px;
+  border-radius: 10px;
+  background: var(--bg-panel-2); border: 1px solid var(--line);
+  font-weight: 700; font-size: 14px; color: var(--ink-dim);
+}
+.seg button.is-on { background: var(--cyan); border-color: var(--cyan); color: #06202f; }
+
+.danger { color: #ff8f94; border-color: #6b2f33; }
+
+/* ==========================================================================
+   Notices
+   ========================================================================== */
+
+.notice {
+  width: min(660px, 100%);
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: #2a2416;
+  border: 1px solid #6b5a2a;
+  color: #ffd79a;
+  font-size: 14.5px; font-weight: 600; line-height: 1.5;
+  display: none;
+}
+.notice.is-visible { display: block; }
+
+/* ==========================================================================
+   Responsive / accessibility
+   ========================================================================== */
+
+@media (max-height: 560px) {
+  .hud { padding: 10px 14px; }
+  .feedback { bottom: 4%; }
+  #screen-levels { gap: 16px; padding: 18px; }
+  .level-card { min-height: 118px; padding: 18px; }
+}
+
+@media (max-width: 520px) {
+  .hud { padding-inline: 10px; }
+  .hud-top { gap: 7px; }
+  .hud-chip { padding: 8px 11px; }
+  .hud-right { gap: 6px; }
+  .timer-chip { min-width: 62px; padding-inline: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mic-dot.is-listening { animation: none; }
+  .timer-chip.is-urgent, .countdown.is-beat span { animation: none; }
+  * { transition-duration: .01ms !important; }
+}

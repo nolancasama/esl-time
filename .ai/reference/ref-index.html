@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Word Scanner</title>
+
+<!--
+  Fonts load asynchronously via the media="print" swap trick. On a slow or
+  offline school network the request never resolves and the rounded system
+  fallback is used — first paint is never blocked.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'"
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap">
+
+<link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+
+<!-- ======================================================================
+     Level select
+     ====================================================================== -->
+<section id="screen-levels" class="screen is-visible">
+  <div class="choose-head">
+    <h1 class="choose-title">CHOOSE YOUR LEVEL</h1>
+    <p class="choose-jp">レベルをえらんでね</p>
+  </div>
+
+  <div id="compat-notice" class="notice"></div>
+
+  <div id="level-grid" class="level-grid"></div>
+
+  <button id="btn-settings" class="btn btn-ghost btn-small">Teacher Settings</button>
+</section>
+
+<!-- ======================================================================
+     Start gate — one press grants camera + microphone
+     ====================================================================== -->
+<section id="screen-start" class="screen">
+  <div class="start-level" id="start-level-name">Level 1</div>
+  <p class="start-ready">Ready? <span>じゅんびはいい？</span></p>
+  <button id="btn-start" class="btn btn-primary btn-start">START</button>
+  <p class="start-note" id="start-note">Say each word out loud as it reaches the scanner.</p>
+  <button id="btn-start-back" class="btn btn-ghost btn-small">Back</button>
+</section>
+
+<!-- ======================================================================
+     Game
+     ====================================================================== -->
+<section id="screen-game" class="screen">
+  <!-- The camera video and the WebGL canvas are both mounted here. -->
+  <div id="stage" class="stage no-camera">
+    <div class="camera-scrim"></div>
+  </div>
+
+  <div class="hud">
+    <div class="hud-top">
+      <div class="hud-left">
+        <div class="hud-chip">
+          <span class="mic-dot" id="mic-dot"></span>
+          <span id="hud-score">0 ✓</span>
+        </div>
+      </div>
+      <div class="hud-chip timer-chip" id="timer-chip" aria-label="Time remaining">
+        <span id="hud-timer">30</span>
+      </div>
+      <div class="hud-right">
+        <div class="hud-chip streak-chip" id="streak-chip">
+          <span id="hud-streak">🔥 0</span>
+        </div>
+        <button class="icon-btn" id="btn-quit" title="Quit" aria-label="Quit">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="countdown" id="countdown" aria-live="polite">
+    <span id="countdown-beat">3</span>
+  </div>
+
+  <!-- Result feedback. Sits low so it never covers the word or the gate. -->
+  <div class="feedback" id="feedback">
+    <div class="feedback-en" id="feedback-en"></div>
+    <div class="feedback-jp" id="feedback-jp"></div>
+  </div>
+
+  <div class="dev-bar" id="dev-bar">
+    <span>⚙ TEST MODE</span>
+    <span id="dev-reason">— SPACE = correct, X = miss</span>
+  </div>
+</section>
+
+<!-- ======================================================================
+     Session summary
+     ====================================================================== -->
+<section id="screen-summary" class="screen">
+  <h2 class="summary-title">TIME!</h2>
+  <p class="summary-jp">タイム！</p>
+
+  <div class="summary-score" id="sum-score">0 WORDS!</div>
+  <div class="summary-highlights">
+    <span>Best streak: <strong id="sum-best-streak">0</strong></span>
+    <span id="sum-best-wrap">Best: <strong id="sum-best">0</strong></span>
+  </div>
+  <div class="new-best" id="sum-new-best">NEW BEST!</div>
+
+  <div class="stat-row">
+    <div class="stat"><div class="stat-num" id="sum-words">0</div><div class="stat-label">Encounters</div></div>
+    <div class="stat"><div class="stat-num" id="sum-first">0</div><div class="stat-label">First try</div></div>
+    <div class="stat"><div class="stat-num" id="sum-practice">0</div><div class="stat-label">Practice words</div></div>
+  </div>
+
+  <div class="practice-list" id="practice-list">
+    <div class="practice-head">Words to practice</div>
+    <div class="word-chips" id="practice-chips"></div>
+  </div>
+
+  <div class="btn-row">
+    <button id="btn-play-again" class="btn btn-primary">TRY AGAIN</button>
+    <button id="btn-practice-again" class="btn">PRACTICE AGAIN</button>
+    <button id="btn-change-level" class="btn btn-ghost">CHANGE LEVEL</button>
+  </div>
+</section>
+
+<!-- ======================================================================
+     Teacher settings
+     ====================================================================== -->
+<section id="screen-settings" class="screen">
+  <div class="settings-panel">
+    <h2 class="settings-title">Teacher Settings</h2>
+    <p class="settings-note">For teachers. Students do not need these.</p>
+
+    <div class="setting">
+      <div>
+        <div class="setting-label">Round length</div>
+        <span class="setting-hint">A normal challenge is 30 seconds.</span>
+      </div>
+      <div class="seg" data-key="wordsPerSession">
+        <button data-value="20">20s</button>
+        <button data-value="30">30s</button>
+        <button data-value="45">45s</button>
+        <button data-value="60">60s</button>
+      </div>
+    </div>
+
+    <div class="setting">
+      <div>
+        <div class="setting-label">Conveyor speed</div>
+        <span class="setting-hint">Slower gives more time before the gate.</span>
+      </div>
+      <div class="seg" data-key="conveyorSpeed">
+        <button data-value="0.75">Slow</button>
+        <button data-value="1">Normal</button>
+        <button data-value="1.3">Brisk</button>
+      </div>
+    </div>
+
+    <div class="setting">
+      <div>
+        <div class="setting-label">Listening</div>
+        <span class="setting-hint">More forgiving helps in a noisy room.</span>
+      </div>
+      <div class="seg" data-key="sensitivity">
+        <button data-value="0.8">Strict</button>
+        <button data-value="1">Normal</button>
+        <button data-value="1.2">Forgiving</button>
+      </div>
+    </div>
+
+    <div class="setting">
+      <div>
+        <div class="setting-label">Practice</div>
+        <span class="setting-hint">Difficult draws from words needing work.</span>
+      </div>
+      <div class="seg" data-key="practiceMode">
+        <button data-value="mixed">Mixed</button>
+        <button data-value="difficult">Difficult</button>
+      </div>
+    </div>
+
+    <div class="setting">
+      <div>
+        <div class="setting-label">Sound</div>
+        <span class="setting-hint">Scanner and belt effects.</span>
+      </div>
+      <div class="seg" data-key="sound">
+        <button data-value="true">On</button>
+        <button data-value="false">Off</button>
+      </div>
+    </div>
+
+    <div class="setting">
+      <div>
+        <div class="setting-label">Test mode</div>
+        <span class="setting-hint">SPACE = correct, X = miss. For testing without speaking.</span>
+      </div>
+      <div class="seg" data-key="devMode">
+        <button data-value="false">Off</button>
+        <button data-value="true">On</button>
+      </div>
+    </div>
+
+    <div class="setting">
+      <div>
+        <div class="setting-label">Reset all progress</div>
+        <span class="setting-hint">Clears every level on this device.</span>
+      </div>
+      <button id="btn-reset" class="btn danger btn-small">Reset</button>
+    </div>
+
+    <div class="btn-row" style="margin-top:22px">
+      <button id="btn-settings-back" class="btn btn-primary">Done</button>
+    </div>
+  </div>
+</section>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

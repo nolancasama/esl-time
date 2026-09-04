@@ -1,0 +1,54 @@
+{
+  "task": "Implement the ESL telling-time game shell around the already-finished src/time-match.js: 12 placeholder scenes, a dynamic SVG analog clock, press-and-hold speech recognition, scheduling, progress, settings and the round loop. Frozen spec is SPEC.md. Vanilla ES modules, no build step, no dependencies.",
+  "requirements": [
+    "index.html — screens as sibling <section class=\"screen\"> elements toggled by a class, following the structure of .ai/reference/ref-index.html: level select, game, session summary, settings. Load src/main.js as type=module. No inline game logic.",
+    "src/data/times.js — the five level pools of SPEC.md section 2 built from one small data table (level id, name, allowed minutes). Export getLevel(id), allLevels(), timeKey({h,m}), parseKey(key). Level 5 uses the weighted mix stated in the spec. Adding or editing a level must mean editing that one table and nothing else.",
+    "src/data/scenes.js — exactly 12 scene records in the shape given in SPEC.md section 4. Use these frozen values, in this order, as {id, name, placeholder, clock:{x,y,size,type:'analog'}, background:null, character:null, voice:null}: scene-01 Classroom 18/20/22; scene-02 Kitchen 80/18/20; scene-03 Living Room 22/46/26; scene-04 Bedroom 76/44/24; scene-05 Train Station 50/14/18; scene-06 Park 72/12/16; scene-07 Library 16/66/24; scene-08 Gym 30/13/17; scene-09 Cafeteria 50/52/30; scene-10 Hallway 82/62/22; scene-11 Music Room 26/58/27; scene-12 School Gate 38/18/19. x/y are percentages of the stage box and address the clock centre; size is the clock diameter as a percentage of the stage's smaller dimension. placeholder is 'Placeholder Scene 1' through 'Placeholder Scene 12'.",
+    "src/clock.js — render an analog clock as inline SVG from a {h,m} target. The hour hand must move gradually with the minutes: at 7:30 it sits exactly halfway between 7 and 8 (angle = (h%12)*30 + m*0.5). Minute hand = m*6 degrees. Draw a face, 12 hour numerals, 60 minute ticks with the 5-minute ticks emphasised, both hands with distinct lengths and weights, and a centre pin. Scale entirely from the SVG viewBox so one renderer serves every size. Dispatch through a registry keyed by clock.type — export registerClockRenderer(type, fn) and renderClock(type, time, opts) — with only 'analog' registered in V1, so digital/alarm/microwave/station can be added later without touching callers.",
+    "src/scene.js — mount a scene into the stage. Always emit three stacked layers in this order as real elements: background layer (neutral placeholder ground plus the 'Placeholder Scene N' label), clock layer (positioned per the scene's clock.x/y/size), foreground character layer (present, empty, correctly z-ordered in V1). Changing the target time must re-render only the clock, not rebuild the scene.",
+    "src/scheduler.js — independent shuffled passes over times and over scenes, per SPEC.md section 5. Port the Fisher-Yates shuffle and the greedy avoidAdjacentRepeats from .ai/reference/ref-scheduler.js. Every time in the pool is dealt once before any is dealt twice; no time and no scene ever repeats back to back, including across the seam between passes. practiceMode 'difficult' draws from the student's missed times, falling back to the level pool when fewer than 6 exist.",
+    "src/progress.js — per-time records keyed by '7:15' (shown, correct, misses, lastSeen, and a never-decreasing mastery peak), plus settings, both under the single localStorage key eslTime.v1. Every localStorage read and write wrapped so a locked-down school profile falls back to in-memory state instead of throwing. Progress never decreases. Expose strugglingTimes() for the difficult pool and a reset().",
+    "src/speech.js — press-and-hold recognition per SPEC.md section 6. Start on pointerdown, stop on pointerup/pointercancel, setPointerCapture so a finger sliding off the button still ends the hold, touch-action:none plus preventDefault so holding never scrolls or triggers long-press selection. Held Space or Enter is the keyboard equivalent, ignoring auto-repeat. Hard 5000 ms timeout. Report hold duration so the caller can apply the 300 ms accidental-tap floor. Collect up to 5 alternatives and hand them to matchTime in rank order. Mic closed between rounds — never continuous, never always-on.",
+    "src/speech.js must also detect that recognition is unsupported (Firefox, Safari) or that permission was denied, and report it. src/game.js then swaps the hold button for a typed-answer input running through exactly the same matchTime() path, and says so plainly once. The game must never be a dead screen.",
+    "src/audio.js — play a scene's character audio when scene.voice is set and the audio setting is on; a missing or failed asset is silent and never throws or blocks the round. Small synthesised WebAudio correct/incorrect feedback sounds, respecting the feedback-sounds setting.",
+    "src/game.js — the round loop of SPEC.md section 1 and the result mapping of section 3.6. reason 'match' gives positive feedback (checkmark, brief animation, sound) and advances quickly. 'wrong-time' and 'bad-grammar' show 'Try again', keep the SAME scene, target and clock, and count as a genuine wrong attempt. 'no-time' and 'empty' show 'Try again' but are NOT scored and NOT counted. After revealAfter genuine wrong attempts, reveal spokenForm(target) and record the time as difficult. The student is never told which of wrong-time/bad-grammar occurred.",
+    "src/main.js — wire screens, level select, settings, and the summary. Summary shows correct count, first-try count, and the times to practise, with a 'Practice Again' action that starts a difficult-mode session over the missed times, following the summary flow of the Sight Word Factory reference.",
+    "Settings screen implementing exactly the table in SPEC.md section 9, including the teacher-only 'Show transcript' toggle (default off) and 'Reset progress'.",
+    "styles/main.css — scene fills most of the screen; the clock reads as an object inside the scene rather than a floating quiz card. Bottom-centre hold button at least 96px tall and 240px wide reading '🎙 Hold to Talk' with 押している間、話そう beneath it, becoming 'Listening…' with a visible pulse while held. Top bar with Back, progress and Settings only. Feedback sits low and never covers the clock. Large touch targets, no hover-only affordances. Layout must hold at 1024x600, 1366x768, 1920x1080 and in portrait."
+  ],
+  "constraints": [
+    "src/time-match.js already exists and its API is frozen (see SPEC.md 3.1). Import and use it. Do NOT modify it, do NOT reimplement any part of the matching or normalisation logic elsewhere, and do NOT modify src/time-match.test.mjs.",
+    "SPEC.md is frozen. Implement it; do not redesign it. Implement the most reasonable reading of any ambiguity and note it in the summary.",
+    "Do not create scene artwork, background images, cartoon characters, 3D, camera mechanics, watch/phone animations, or synthesised character voices. Scenes stay neutral placeholder screens with a working clock — that restriction is the point of this version.",
+    "Do not use raster images for the clock. SVG or programmatic rendering only, so the hands change dynamically.",
+    "No dependencies, no package installs, no build step, no framework. ES module syntax only. The game must run by opening index.html or serving the folder statically.",
+    "Never show the live transcript during normal play, and never show it at all unless the teacher setting is on.",
+    "No scene may bake in a fixed time — every scene must be able to display any target.",
+    "Comment the WHY of non-obvious decisions, matching the style of the Sight Word Factory reference modules. Do not narrate mechanics.",
+    "Append entries to DESIGN_DECISIONS.md for decisions a future designer might otherwise reverse without knowing why, and rewrite CURRENT_STATE.md to describe what now exists and what remains. Do not create CHANGES.md or CHANGELOG.md.",
+    "Everything you need is inside this project directory. .ai/reference/ holds read-only copies of the Sight Word Factory game for structural and commenting-style reference only - never import from it, never modify it, never ship it. Do not attempt to read anything outside this project root."
+  ],
+  "startingPoints": [
+    "SPEC.md",
+    "src/time-match.js",
+    ".ai/reference/ref-index.html",
+    ".ai/reference/ref-scheduler.js",
+    ".ai/reference/ref-progress.js",
+    ".ai/reference/ref-speech.js",
+    ".ai/reference/ref-main.css"
+  ],
+  "validation": [
+    "node src/time-match.test.mjs",
+    "node --check src/game.js",
+    "node --check src/main.js",
+    "node --check src/speech.js",
+    "node --check src/clock.js",
+    "node --check src/scheduler.js"
+  ],
+  "category": "ui-app",
+  "complexity": "medium",
+  "bounded": true,
+  "exploration": "local",
+  "risk": "medium",
+  "expectedCost": "large"
+}
