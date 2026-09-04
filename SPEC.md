@@ -115,11 +115,16 @@ In order:
 6. `oh` or `o` immediately before a 1..9 digit becomes the marker `OH`.
 7. `H:MM` collapses to two tokens `H MM`.
 8. A bare 3- or 4-digit run collapses to `H MM` only when it yields a valid
-   time (`715` -> `7 15`, `1145` -> `11 45`). `700` -> `7 0`.
+   time (`715` -> `7 15`, `1145` -> `11 45`). `700` -> `7 0`, which §3.4
+   accepts as the whole hour.
 9. Drop fillers, but NEVER drop a number, `OH`, `oclock`, `past`, `to`, `half`,
    `quarter`, `noon`, `midnight`:
    `um uh er ah mm hmm well ok okay so yes yeah now maybe like i think its
-   it is it the time answer is right`.
+   it is it the time answer is right a an`.
+   `a` / `an` are dropped so "it's **a** quarter past seven" — ordinary English
+   a student will produce — is not rejected. They cannot carry meaning inside a
+   time expression, and the o'clock fold in step 2 has already consumed the one
+   place `a` matters ("a clock").
    Both `it's` and `it is` therefore vanish before parsing; "It's" is never
    required and never rewarded.
 
@@ -133,6 +138,7 @@ form and is ignored. `H` must be 1..12 (`0` reads as 12); `M` must be 0..59.
 | `H oclock` | (H, 0) | | yes |
 | `H` | (H, 0) | | yes |
 | `H M` (M 10..59) | (H, M) | | yes |
+| `H 0` | (H, 0) | numeral rendering of a whole hour: `7:00`, `700` | yes |
 | `H OH M` (M 1..9) | (H, M) | "seven oh five" | yes |
 | `H M` (M 1..9) | (H, M) | "seven five" | **no** |
 | `noon` / `midday` / `midnight` | (12, 0) | | no |

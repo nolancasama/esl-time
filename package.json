@@ -1,0 +1,11 @@
+{
+  "name": "esl-time",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "2D ESL telling-time game for Japanese elementary EFL students.",
+  "scripts": {
+    "serve": "python -m http.server 8000",
+    "test": "node src/time-match.test.mjs"
+  }
+}
