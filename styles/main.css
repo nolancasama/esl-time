@@ -173,6 +173,9 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 /* Floats on the picture. A gradient scrim rather than a solid band keeps the
    artwork running to the bottom edge while white text stays readable over
    whatever the scene happens to be. */
+/* Kept deliberately shallow. It floats ON the artwork, so every pixel it takes
+   is a pixel of picture hidden — one row of controls, a feedback line, and
+   nothing else. */
 .answer-dock {
   position: absolute;
   z-index: 5;
@@ -181,37 +184,41 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
   left: 0;
   display: grid;
   justify-items: center;
-  gap: 4px;
-  padding: 46px 16px max(12px, env(safe-area-inset-bottom));
-  background: linear-gradient(to bottom, rgba(11, 20, 28, 0) 0%, rgba(11, 20, 28, .58) 42%, rgba(11, 20, 28, .84) 100%);
+  gap: 5px;
+  padding: 12px max(14px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-bottom));
+  background: linear-gradient(to bottom, rgba(11, 20, 28, 0) 0%, rgba(11, 20, 28, .5) 45%, rgba(11, 20, 28, .8) 100%);
   pointer-events: none;
 }
 .answer-dock > * { pointer-events: auto; }
 
-.feedback-line { min-height: 29px; color: white; font-size: clamp(18px, 2.4vw, 27px); font-weight: 800; text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.65); }
-.feedback-line.is-correct { color: #7af0b4; }
-.feedback-line.is-reveal { color: #ffd38c; }
-
-/* Back and Settings flank the hold control so the whole upper picture, where
-   every clock is, stays clear. */
-.speech-controls {
+/* Back and the round counter share the left, Settings the right, so the hold
+   control stays centred without needing rows of its own. */
+.dock-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: clamp(10px, 2vw, 26px);
+  gap: clamp(8px, 1.6vw, 20px);
   width: 100%;
   pointer-events: none;
 }
-.speech-controls > * { pointer-events: auto; }
+.dock-row > * { pointer-events: auto; }
+.dock-side { display: flex; flex: 1 1 0; align-items: center; gap: 10px; min-width: 0; }
+.dock-side-end { justify-content: flex-end; }
+.dock-center { flex: 0 1 auto; }
+
+.feedback-line { min-height: 26px; color: white; font-size: clamp(17px, 2.2vw, 25px); font-weight: 800; text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.7); }
+.feedback-line.is-correct { color: #7af0b4; }
+.feedback-line.is-reveal { color: #ffd38c; }
+
+.speech-controls { display: flex; align-items: center; justify-content: center; }
 .hold-button {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 260px;
-  min-height: 104px;
-  padding: 14px 34px;
+  min-width: 240px;
+  min-height: 96px;
+  padding: 12px 30px;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
@@ -311,8 +318,9 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
   .title-plate { gap: 12px; padding: 20px 30px; }
   .start-button { min-height: 84px; }
   .top-button { min-height: 44px; }
-  .hold-button { min-height: 96px; }
-  .answer-dock { padding-top: 34px; }
+  .hold-button { min-height: 96px; padding-block: 8px; }
+  .answer-dock { gap: 3px; padding-top: 8px; }
+  .feedback-line { min-height: 22px; }
   .settings-panel { margin: 0 auto; }
   .setting-row { padding-block: 9px; }
 }

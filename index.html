@@ -26,23 +26,31 @@
       <main id="stage" class="stage" aria-label="Scene"></main>
 
       <div class="answer-dock">
-        <div id="game-progress" class="round-progress" aria-live="polite">0 correct · 1 / 12</div>
         <div class="feedback-line" id="feedback" aria-live="polite"></div>
-        <div id="speech-controls" class="speech-controls">
-          <button id="game-back" class="top-button" type="button">← Back</button>
-          <button id="hold-to-talk" class="hold-button" type="button">
-            <span class="hold-main">🎙 Hold to Talk</span>
-            <span class="hold-help">押している間、話そう</span>
-          </button>
-          <button id="game-settings" class="top-button" type="button" aria-label="Settings">⚙</button>
-        </div>
-        <form id="typed-form" class="typed-form" hidden>
-          <label for="typed-answer">Type the time you would say</label>
-          <div class="typed-row">
-            <input id="typed-answer" type="text" inputmode="text" autocomplete="off" spellcheck="false">
-            <button class="button button-primary" type="submit">Check</button>
+        <div class="dock-row">
+          <div class="dock-side">
+            <button id="game-back" class="top-button" type="button">← Back</button>
+            <div id="game-progress" class="round-progress" aria-live="polite">0 correct · 1 / 12</div>
           </div>
-        </form>
+          <div class="dock-center">
+            <div id="speech-controls" class="speech-controls">
+              <button id="hold-to-talk" class="hold-button" type="button">
+                <span class="hold-main">🎙 Hold to Talk</span>
+                <span class="hold-help">押している間、話そう</span>
+              </button>
+            </div>
+            <form id="typed-form" class="typed-form" hidden>
+              <label for="typed-answer">Type the time you would say</label>
+              <div class="typed-row">
+                <input id="typed-answer" type="text" inputmode="text" autocomplete="off" spellcheck="false">
+                <button class="button button-primary" type="submit">Check</button>
+              </div>
+            </form>
+          </div>
+          <div class="dock-side dock-side-end">
+            <button id="game-settings" class="top-button" type="button" aria-label="Settings">⚙</button>
+          </div>
+        </div>
         <p id="fallback-message" class="fallback-message" hidden>
           Speech recognition is unavailable. Type your answer instead.
         </p>
