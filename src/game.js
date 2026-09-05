@@ -25,6 +25,7 @@ export class TimeGame {
 
     this.speech = new HoldToTalk(elements.holdButton, {
       onResult: (transcripts, detail) => this._judge(transcripts, detail),
+      onLiveResult: (transcripts) => this._judgeLive(transcripts),
       onState: (state) => this._showMicState(state),
       onUnavailable: () => this._useTypedFallback(),
     });
@@ -89,31 +90,56 @@ export class TimeGame {
     if (this.typedFallback) this.elements.typedAnswer.focus({ preventScroll: true });
   }
 
+  /**
+   * Judge a hypothesis heard while the button is STILL held. Success only: an
+   * interim transcript is often just an unfinished sentence ("it's seven" on
+   * the way to "it's seven fifteen"), so anything short of a complete match
+   * keeps listening. Wrongness is only ever decided once the attempt ended.
+   */
+  _judgeLive(transcripts) {
+    if (!this.active || this.paused || !this.current || this.current.resolved) return;
+
+    const result = matchTime(this.current.time, transcripts);
+    if (result.reason !== 'match') return;
+    this._resolveCorrect(result);
+  }
+
+  /**
+   * The one success path, shared by live and release judging. Marks the round
+   * resolved first, which is what makes every later release, onend or timeout
+   * event a harmless no-op.
+   */
+  _resolveCorrect(result) {
+    this.current.resolved = true;
+    this._showTranscript(result.heard);
+    this.progress.recordCorrect(this.current.time);
+    this.session.correct += 1;
+    if (this.current.genuineWrong === 0) this.session.firstTry += 1;
+    // Also stops recognition: disabling the control cancels the open session.
+    this._setAnswerEnabled(false);
+    this._setFeedback('✓ Great!', 'correct');
+    this.elements.stage.classList.add('is-correct');
+    this.audio.playFeedback('correct');
+    this._updateProgress();
+    this.advanceTimer = setTimeout(() => {
+      this.elements.stage.classList.remove('is-correct');
+      this._nextRound();
+    }, 700);
+  }
+
   _judge(transcripts, { duration = null } = {}) {
     if (!this.active || this.paused || !this.current || this.current.resolved) return;
 
     // Very short holds are motor slips, not evidence that the child was wrong.
     const alternatives = duration !== null && duration < ACCIDENTAL_TAP_MS ? [] : transcripts;
     const result = matchTime(this.current.time, alternatives);
-    this._showTranscript(result.heard);
 
     if (result.reason === 'match') {
-      this.current.resolved = true;
-      this.progress.recordCorrect(this.current.time);
-      this.session.correct += 1;
-      if (this.current.genuineWrong === 0) this.session.firstTry += 1;
-      this._setAnswerEnabled(false);
-      this._setFeedback('✓ Great!', 'correct');
-      this.elements.stage.classList.add('is-correct');
-      this.audio.playFeedback('correct');
-      this._updateProgress();
-      this.advanceTimer = setTimeout(() => {
-        this.elements.stage.classList.remove('is-correct');
-        this._nextRound();
-      }, 700);
+      this._resolveCorrect(result);
       return;
     }
 
+    this._showTranscript(result.heard);
     this._setFeedback('Try again');
     if (result.reason !== 'wrong-time' && result.reason !== 'bad-grammar') return;
 

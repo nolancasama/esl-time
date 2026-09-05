@@ -25,6 +25,9 @@ frozen matcher.
   60 ticks, 12 numerals, and a minute-adjusted hour hand.
 - Press-and-hold Web Speech recognition with pointer capture, cancellation
   paths, keyboard parity, a five-second limit, and typed fallback.
+- Correct answers are accepted mid-hold: interim hypotheses are judged live
+  (success only), so a finished correct answer resolves without waiting for
+  the child to release. Non-matches during the hold keep listening.
 - A twelve-round loop with distinct matcher consequences, reveal handling,
   progress, summary statistics, and difficult-practice replay.
 - Guarded single-key local persistence and optional, nonblocking audio.

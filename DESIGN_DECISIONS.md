@@ -111,6 +111,31 @@ Why: the frozen round loop explicitly adds a time to the difficult pool after
 the reveal threshold. `no-time`, `empty`, and sub-300 ms holds remain free
 retries and never affect either progress or first-try credit.
 
+## 2026-09-05 — Correct answers are accepted mid-hold, and only correct ones
+
+Interim recognition hypotheses are judged while the child is still holding the
+button. The instant one is a complete match for the target, the round resolves:
+no waiting for the finger to come up. `HoldToTalk` gained an `onLiveResult`
+callback; `game.js` gained `_judgeLive`, and the success path both judges share
+moved into `_resolveCorrect`.
+
+Live judging is deliberately **success-only**. An interim transcript is usually
+an unfinished sentence — "it's seven" on the way to "it's seven fifteen" — so
+treating a non-match as wrong would score a child mid-word. Every outcome other
+than `match` simply keeps listening, and wrongness is decided only once the
+attempt has actually ended. The asymmetry is the point: correct-only during the
+hold, correct-or-wrong after release.
+
+No debounce, stability timer or repeat-confirmation gates acceptance, and
+`isFinal` is explicitly NOT required — an interim hypothesis can already be a
+complete correct answer, and waiting for the final one is the delay being
+removed.
+
+Double-scoring is prevented by state that already existed: `_resolveCorrect`
+sets `resolved` first, and disabling the answer control cancels the open
+recognition session, which sets `finished` so no later release, `onend` or
+timeout can deliver a second result. No new guard flag was needed.
+
 ## 2026-09-05 — A title screen replaces level selection; Mixed is the default
 
 The first screen is now a title, one large `スタート` and a smaller

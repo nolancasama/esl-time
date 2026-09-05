@@ -16,9 +16,10 @@ export function speechSupported() {
 
 /** One recognition session per physical hold; the mic is closed at every seam. */
 export class HoldToTalk {
-  constructor(button, { onResult, onState, onUnavailable } = {}) {
+  constructor(button, { onResult, onLiveResult, onState, onUnavailable } = {}) {
     this.button = button;
     this.onResult = onResult || (() => {});
+    this.onLiveResult = onLiveResult || (() => {});
     this.onState = onState || (() => {});
     this.onUnavailable = onUnavailable || (() => {});
     this.enabled = true;
@@ -102,7 +103,17 @@ export class HoldToTalk {
         const transcript = result[index]?.transcript;
         if (transcript) alternatives.push(transcript);
       }
-      if (alternatives.length) this.alternatives = alternatives;
+      if (!alternatives.length) return;
+      this.alternatives = alternatives;
+      // Interim hypotheses are offered for judging DURING the hold, so a
+      // finished correct answer is accepted the moment the recogniser reports
+      // it instead of waiting for the child to let go. Only while the hold is
+      // live: once it ends, the final result belongs to onResult.
+      // isFinal is passed for information but must not gate acceptance —
+      // an interim hypothesis can already be a complete correct answer.
+      if (this.active) {
+        this.onLiveResult([...alternatives], { isFinal: Boolean(result.isFinal) });
+      }
     };
     recognition.onerror = (event) => {
       const reason = event?.error;

@@ -181,6 +181,27 @@ expectMatch('whole-hour fix keeps oclock rule', { h: 7, m: 0 }, "seven zero o'cl
 expectMatch('whole-hour fix keeps order rule', { h: 7, m: 30 }, '30 7', 'bad-grammar');
 expectMatch('hour zero reads as twelve', { h: 12, m: 7 }, "it's 0 7", 'match');
 
+// --- Live (interim) judging during a hold accepts on 'match' and ignores
+// everything else. These assert the exact hypotheses a recogniser emits
+// mid-sentence, so an unfinished answer can never be scored wrong.
+
+// Target 7:15, spoken "it's seven fifteen": only the complete phrase matches.
+expectMatch('live: partial hour is not yet 7:15', { h: 7, m: 15 }, "it's seven", 'wrong-time');
+expectMatch('live: completed phrase matches 7:15', { h: 7, m: 15 }, "it's seven fifteen", 'match');
+
+// Target 7:00: "it's seven" is ALREADY complete, so it must match without
+// waiting for a possible "o'clock" that may never be spoken.
+expectMatch('live: bare hour completes 7:00', { h: 7, m: 0 }, "it's seven", 'match');
+
+// Target 9:50, spoken "it's nine fifty".
+expectMatch('live: partial hour is not yet 9:50', { h: 9, m: 50 }, "it's nine", 'wrong-time');
+expectMatch('live: completed phrase matches 9:50', { h: 9, m: 50 }, "it's nine fifty", 'match');
+
+// A genuinely wrong answer stays non-matching at every interim step, so live
+// judging simply never fires and release-time judging decides it.
+expectMatch('live: wrong oclock never matches 7:15', { h: 7, m: 15 }, "it's seven o'clock", 'wrong-time');
+expectMatch('live: bad grammar never matches', { h: 7, m: 15 }, "it's seven fifteen o'clock", 'bad-grammar');
+
 // Every five-minute target must also clear its numeral rendering, not just its
 // word form - this is the sweep that exposed the whole-hour gap.
 for (let h = 1; h <= 12; h += 1) {

@@ -329,6 +329,13 @@ Web Speech API, `lang='en-US'`, `continuous=false`, `interimResults=true`,
   so holding does not scroll or trigger long-press selection.
 - Held **Space** or **Enter** is the keyboard equivalent (keydown starts, keyup
   stops; ignore auto-repeat). The button is a real `<button>` and focusable.
+- **Interim hypotheses are judged during the hold, success only.** As soon as a
+  live transcript is a complete match for the target, the round resolves
+  immediately — the child does not have to release first. Any other outcome
+  (`wrong-time`, `bad-grammar`, `no-time`, `empty`) is ignored while held and
+  simply keeps listening, because an interim transcript is usually an
+  unfinished sentence. Wrongness is only ever decided after release. Do not
+  gate acceptance on `isFinal`, and do not add stability or debounce timers.
 - Hard timeout ~5000 ms: recognition can never stay open indefinitely.
 - Holds shorter than ~300 ms are treated as an accidental tap: `empty` result,
   free retry, never scored.
