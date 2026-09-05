@@ -1,6 +1,7 @@
 import { allDifficulties, levelIdForDifficulty } from './data/times.js';
 import { Progress } from './progress.js';
 import { TimeGame, formatRunTime, ENABLE_SCORING } from './game.js';
+import { SpeedRound } from './speed-round.js';
 import { renderClock } from './clock.js';
 
 const progress = new Progress();
@@ -105,6 +106,54 @@ const game = new TimeGame({
   },
 });
 
+/**
+ * The speed challenge is a separate activity with its own screen, its own
+ * speech instance and its own scoring. It is reachable ONLY from the analog
+ * completion screen, so it can never become the thing a child lands in first.
+ */
+const speedRound = new SpeedRound({
+  progress,
+  onComplete: renderSpeedResult,
+  elements: {
+    clock: document.querySelector('#speed-clock'),
+    countdown: document.querySelector('#speed-countdown'),
+    countdownChip: document.querySelector('#speed-countdown-chip'),
+    score: document.querySelector('#speed-score'),
+    scoreChip: document.querySelector('#speed-score-chip'),
+    scorePop: document.querySelector('#speed-score-pop'),
+    streak: document.querySelector('#speed-streak'),
+    feedback: document.querySelector('#speed-feedback'),
+    answer: document.querySelector('#speed-answer'),
+    speechControls: document.querySelector('#speed-speech'),
+    holdButton: document.querySelector('#speed-hold'),
+    typedForm: document.querySelector('#speed-typed-form'),
+    typedAnswer: document.querySelector('#speed-typed-answer'),
+    intro: document.querySelector('#speed-intro'),
+    introCount: document.querySelector('#speed-intro-count'),
+  },
+});
+
+function startSpeedRound() {
+  showScreen('screen-speed');
+  speedRound.start();
+}
+
+function renderSpeedResult(result) {
+  document.querySelector('#speed-result-count').textContent = String(result.correct);
+  document.querySelector('#speed-result-mistakes').textContent = String(result.mistakes);
+  document.querySelector('#speed-result-streak').textContent = String(result.bestStreak);
+  document.querySelector('#speed-result-best').textContent = result.bestScore === null
+    ? '—'
+    : String(result.bestScore);
+  document.querySelector('#speed-result-new-best').hidden = !result.isNewBest;
+  showScreen('screen-speed-result');
+}
+
+function leaveSpeedRound(target) {
+  speedRound.stop();
+  showScreen(target);
+}
+
 function settingsValue(raw) {
   if (raw === 'true') return true;
   if (raw === 'false') return false;
@@ -170,6 +219,10 @@ document.querySelector('#practice-again').addEventListener('click', () => {
   game.start({ levelId: lastSummary.levelId, practiceMode: 'difficult' });
 });
 document.querySelector('#play-again').addEventListener('click', startGame);
+document.querySelector('#speed-challenge').addEventListener('click', startSpeedRound);
+document.querySelector('#speed-back').addEventListener('click', () => leaveSpeedRound('screen-summary'));
+document.querySelector('#speed-again').addEventListener('click', startSpeedRound);
+document.querySelector('#speed-exit').addEventListener('click', () => leaveSpeedRound('screen-summary'));
 document.querySelector('#change-level').addEventListener('click', () => showScreen('screen-title'));
 
 // The standalone analog renderer, otherwise unused now that every scene paints

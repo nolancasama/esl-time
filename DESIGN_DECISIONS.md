@@ -323,3 +323,57 @@ which is not the same as being sized deliberately. The clock is the content of
 this game, so the authored range should clear the floor on its own at ordinary
 classroom sizes and let the rescue apply only where it is genuinely needed.
 Size variety across scenes is preserved — the range is now 20% to 30%.
+
+## 2026-09-05 — An optional 60-second digital speed challenge, after the analog round
+
+The twelve illustrated analog scenes remain a complete activity that ends at
+its own completion screen. That screen now also OFFERS a second, separate
+mode: a 60-second round of digital-clock targets, scored as the plain number
+of correct answers. It is never launched automatically, and every existing way
+out of the completion screen (Practice Again, Play Again, おわる) is unchanged.
+
+Why: the analog round teaches comprehension and conversation — a character
+asks, the child reads a painted clock and answers. Fluent digital-time
+production is a different skill, and drilling it inside the analog round would
+have meant putting a countdown on the conversation. Keeping it as a separate,
+opt-in mode lets the analog round stay unhurried while still giving fast
+finishers something that rewards speed.
+
+Rejected: making the speed round the natural end of every session (it would
+turn a calm activity into a timed one for children who did not want that), and
+folding digital times into the analog deck (a painted clock and a digital
+readout are different reading tasks and should not share a deck).
+
+Design rules that were deliberate rather than incidental:
+
+- **Difficulty is automatic and one-way.** Four stages driven only by the
+  cumulative correct count: whole hours (0-2), quarters (3-5), five-minute
+  times (6-9), then ANY exact minute (10+). A mistake never demotes a stage —
+  it already cost the child seconds, and losing difficulty on top of that
+  punishes twice. The analog difficulty setting (かんたん/ふつう/むずかしい/
+  ミックス) does not apply here and the child is never asked to pick a second
+  difficulty.
+- **A wrong answer costs no points and keeps the same time on screen.** Time
+  is the only currency; the score only ever rises. The target is not skipped,
+  so a child who misread it gets to read it again.
+- **Streaks celebrate but never multiply.** One correct answer is always worth
+  exactly one point, so the final number means the same thing every run.
+- **The target is a physical-looking clock, not text.** `digital-clock.js`
+  draws seven-segment digits in a cased panel, with unlit segments still
+  faintly visible. A number in a web font reads as an instruction; a lit panel
+  reads as a clock to be told the time from. No font or image is fetched.
+- **The last attempt is never cut off.** If the countdown reaches zero while a
+  child is still holding the button, that attempt finishes and can still score
+  the final point. No NEW attempt may start after zero.
+
+## 2026-09-05 — Minutes 01-09 are taught as "oh", and a dropped "oh" is forgiven
+
+The model sentence for 6:02 is "It's six oh two." — never "six zero two". The
+matcher already accepted "it's six two" (a bare hour-minute pair), and that
+tolerance is deliberately kept rather than tightened.
+
+Why: Chromebook speech recognition frequently drops the unstressed "oh". A
+child who read the clock correctly should not fail on the recogniser's
+transcription. The tolerance is bounded to the existing hour-minute structure —
+it is not a general loosening, and every other rule still applies, including
+the requirement to say "it's".

@@ -39,10 +39,17 @@ frozen matcher.
 - Responsive layouts for classroom landscape sizes and portrait screens.
 - `visual.html`, a contact sheet rendering all 12 scenes at once for checking
   clock placement and legibility without playing a session.
+- An OPTIONAL 60-second digital speed challenge, offered on the analog
+  completion screen and never launched automatically. Seven-segment SVG clock
+  panel (`digital-clock.js`), automatic four-stage difficulty driven only by
+  cumulative correct answers (`data/speed-times.js`), countdown, streak
+  celebrations, and a saved best count. It reuses the analog round's speech
+  stack unchanged: same hold-to-talk, same live interim judging, same matcher,
+  same required "it's".
 
 ## Verified
 
-- 435 matcher assertions and 26 session-deck assertions pass (`npm test`). Includes: curly/smart-quote
+- 473 matcher, 26 session-deck and 18 speed-deck assertions pass (`npm test`). Includes: curly/smart-quote
   apostrophes now normalize like straight ones, and saying "it's"/"its"/"it
   is" is required for any answer to count as correct (see
   DESIGN_DECISIONS.md, 2026-09-05) — a structurally valid time said without
@@ -57,6 +64,14 @@ frozen matcher.
   `(h%12)*30 + m*0.5` / `m*6` from the live DOM, and all 12 clocks inspected
   visually at zoom. Clock faces measure 88-265 px across 1024x600, 1366x768,
   1920x1080 and portrait, with no clock cropped out of frame at any size.
+- Speed challenge driven end to end in a headless browser with stubbed speech
+  and a movable clock: 78 assertions covering the full analog round still
+  finishing to the summary, the challenge being offered rather than launched,
+  the countdown starting at 60 and the score at 0, one point per correct
+  answer, live acceptance while the button is still held, a wrong answer
+  neither scoring nor changing the target, stage 1 to stage 2 progression,
+  expiry while idle and expiry mid-attempt, restart, leaving the mode, and
+  layout at 1366x768 / 1024x600 / 1920x1080 / 768x1024 / 1280x460.
 - Speech itself is NOT verified end to end - it cannot run in a headless
   browser. The hold mechanics need a manual pass on a real Chromebook.
 
@@ -79,7 +94,9 @@ frozen matcher.
 ## Next Steps
 
 1. Manual pass on a real touchscreen Chromebook: hold, release, slide-off, and
-   a denied-microphone run. This is the one path automation could not cover.
+   a denied-microphone run, in BOTH modes. This is the one path automation
+   could not cover. Stage 4 of the speed challenge is the interesting case:
+   whether Chromebook STT reliably returns exact minutes like 6:02 and 8:17.
 2. Confirm with a teacher that dropping level selection from the entry path is
    right for classroom use — a teacher who wants a narrower pool now has to go
    through オプション first.

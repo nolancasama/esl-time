@@ -408,6 +408,10 @@ difficulty never starts a round; `もどる` returns to the title, top and botto
 | Reveal after | 2 / 3 attempts | 2 |
 | Show transcript (teacher) | on / off | off |
 
+Best scores are stored alongside settings: `bests` (per-difficulty run times,
+currently unused while scoring is off) and `speedBest` (highest speed-challenge
+count). Both are cleared by Reset progress.
+
 Plus "Reset progress". Storage access is wrapped so a locked-down school
 profile falls back to in-memory state rather than throwing.
 
@@ -418,6 +422,51 @@ profile falls back to in-memory state rather than throwing.
 Per-time records keyed by `"7:15"`: shown, correct, misses, lastSeen, plus a
 never-decreasing mastery peak. Missed times feed the difficult pool. Progress
 never goes down.
+
+---
+
+## 10a. Digital speed challenge (`src/speed-round.js`) — optional, post-round
+
+A second mode, reachable ONLY from the analog completion screen. Never
+automatic. The analog round is unchanged by it.
+
+**Loop.** A 60-second countdown. One digital target at a time; say it, and the
+next appears after ~220 ms. Score is the plain count of correct answers — no
+weighting, no multipliers, no deductions.
+
+**Stages** (`src/data/speed-times.js`), by CUMULATIVE correct answers only, so
+a mistake never demotes:
+
+| Correct | Stage | Minutes |
+|---|---|---|
+| 0-2 | 1 | `:00` |
+| 3-5 | 2 | `:00 :15 :30 :45` |
+| 6-9 | 3 | every five minutes |
+| 10+ | 4 | **any minute 00-59** |
+
+Hours are 1-12. Display is always `H:MM` (hour unpadded, minute always two
+digits). Times are drawn with a tier cascade that avoids repeating the previous
+time, hour and minute where the stage allows it; an identical consecutive time
+is impossible in every stage.
+
+**Answering.** The same `HoldToTalk`, the same live interim judging (success
+only), the same `matchTime`, the same required "it's". Minutes 01-09 are taught
+as "oh" (`It's six oh two.`) and a recogniser that drops the "oh" still
+matches (see §3.4).
+
+**Wrong answers.** No point is lost, the same time stays on screen, feedback is
+`Try again`, and another attempt may start immediately.
+
+**Expiry.** At zero, an attempt already in progress finishes and can still
+score the final point; no new attempt may begin. Idle expiry ends the round at
+once.
+
+**Result screen.** `TIME!`, the count, then mistakes, longest streak and best.
+Best is a single `speedBest` count in the same `eslTime.v1` key, cleared by
+Reset progress. Buttons: もう一回 / もどる.
+
+**Deliberately absent** (it would slow the round): scene artwork, character
+voices, the reveal, and any separate difficulty choice.
 
 ---
 

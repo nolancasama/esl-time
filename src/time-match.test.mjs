@@ -212,5 +212,28 @@ for (let h = 1; h <= 12; h += 1) {
   }
 }
 
+// Minutes 01-09 in the speed challenge. The taught model is "oh", never
+// "zero", and the recogniser dropping the "oh" altogether must not fail a
+// child who read the clock correctly - Chromebook STT does this often.
+for (let m = 1; m <= 9; m += 1) {
+  const target = { h: 6, m };
+  const words = spokenWords(target);
+  check(`model form for 6:0${m} teaches "oh"`, () => {
+    assert.match(spokenForm(target), /^It's six oh /);
+    assert.ok(!words.includes('zero'), `model said "${words}"`);
+  });
+  expectMatch(`6:0${m} spoken with oh`, target, `it's ${words}`, 'match');
+  expectMatch(`6:0${m} still matches when STT drops the oh`, target,
+    `it's six ${m}`, 'match');
+  expectMatch(`6:0${m} as a numeral`, target, `it's 6:0${m}`, 'match');
+}
+
+// "zero" is not the taught word, and dropping "it's" is still bad grammar even
+// with the low-minute tolerance above.
+expectMatch('"six zero two" is not the taught form', { h: 6, m: 2 },
+  "it's six zero two", 'bad-grammar');
+expectMatch('the low-minute tolerance does not excuse a missing "its"',
+  { h: 6, m: 2 }, 'six oh two', 'bad-grammar');
+
 console.log(`${passed} passed, ${failed} failed`);
 if (failed) process.exitCode = 1;

@@ -110,10 +110,21 @@ function sanitizeBests(value) {
   return bests;
 }
 
+/**
+ * Best speed-challenge result: the number of correct answers in one 60-second
+ * round. Deliberately a plain count rather than a weighted score, so a child
+ * can compare it to the number on the screen they just left.
+ */
+function sanitizeSpeedBest(value) {
+  const score = Number(value);
+  return Number.isFinite(score) && score > 0 ? Math.floor(score) : 0;
+}
+
 function sanitizeState(value) {
   const state = {
     times: {},
     bests: sanitizeBests(value?.bests),
+    speedBest: sanitizeSpeedBest(value?.speedBest),
     settings: sanitizeSettings(value?.settings),
   };
 
@@ -169,12 +180,39 @@ export class Progress {
     const state = readState();
     this.times = state.times;
     this.bests = state.bests;
+    this.speedBest = state.speedBest;
     this.settings = state.settings;
     memoryState = cloneState(state);
   }
 
   save() {
-    writeState({ times: this.times, bests: this.bests, settings: this.settings });
+    writeState({
+      times: this.times,
+      bests: this.bests,
+      speedBest: this.speedBest,
+      settings: this.settings,
+    });
+  }
+
+  /** Best speed-challenge count, or null when no round has been finished. */
+  getSpeedBest() {
+    return this.speedBest > 0 ? this.speedBest : null;
+  }
+
+  /**
+   * Record a finished speed round. Higher is better here, the opposite of the
+   * timed analog score, and a weaker round never lowers the best.
+   */
+  recordSpeedScore(correct) {
+    const score = Math.floor(Number(correct));
+    const previous = this.getSpeedBest();
+    if (!Number.isFinite(score) || score <= 0) return { best: previous, isNewBest: false };
+    const isNewBest = previous === null || score > previous;
+    if (isNewBest) {
+      this.speedBest = score;
+      this.save();
+    }
+    return { best: isNewBest ? score : previous, isNewBest };
   }
 
   /** Best completed-run score for one difficulty, or null. */
@@ -294,6 +332,7 @@ export class Progress {
   reset() {
     this.times = {};
     this.bests = {};
+    this.speedBest = 0;
     this.save();
   }
 }

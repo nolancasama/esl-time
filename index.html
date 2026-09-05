@@ -101,10 +101,87 @@
       <h3>Times to practise</h3>
       <div id="practice-times" class="practice-times"></div>
     </div>
+    <div class="challenge-offer">
+      <button id="speed-challenge" class="button challenge-button" type="button">
+        <span class="challenge-jp" lang="ja">スピードチャレンジ</span>
+        <span class="challenge-en">Optional · 60-second digital speed round</span>
+      </button>
+    </div>
     <div class="button-row">
-      <button id="practice-again" class="button button-primary" type="button">Practice Again</button>
+      <button id="practice-again" class="button" type="button">Practice Again</button>
       <button id="play-again" class="button" type="button">Play Again</button>
-      <button id="change-level" class="button button-quiet" type="button"><span lang="ja">タイトル</span></button>
+      <button id="change-level" class="button button-quiet" type="button"><span lang="ja">おわる</span></button>
+    </div>
+  </section>
+
+  <section id="screen-speed" class="screen speed-screen" aria-label="Digital speed challenge">
+    <button id="speed-back" class="corner-button corner-left" type="button">
+      ← <span class="corner-label">Back</span>
+    </button>
+
+    <div class="speed-hud">
+      <span id="speed-countdown-chip" class="speed-chip speed-countdown" aria-label="Seconds left">
+        <span class="timer-icon" aria-hidden="true">⏱</span>
+        <span id="speed-countdown" class="speed-chip-value">60</span>
+      </span>
+      <span id="speed-score-chip" class="speed-chip speed-score" aria-live="polite" aria-label="Correct">
+        <span class="speed-tick" aria-hidden="true">✓</span>
+        <span id="speed-score" class="speed-chip-value">0</span>
+        <span id="speed-score-pop" class="score-pop" aria-hidden="true"></span>
+      </span>
+    </div>
+
+    <div id="speed-clock" class="speed-clock" role="img" aria-label="Digital clock"></div>
+
+    <p id="speed-streak" class="speed-streak" aria-hidden="true" hidden></p>
+
+    <div id="speed-answer" class="answer-dock">
+      <div class="feedback-line" id="speed-feedback" aria-live="polite"></div>
+      <div class="dock-center">
+        <div id="speed-speech" class="speech-controls">
+          <button id="speed-hold" class="hold-button" type="button">
+            <svg class="mic-icon" viewBox="0 0 24 26" aria-hidden="true" focusable="false">
+              <rect x="8.5" y="1" width="7" height="13" rx="3.5" fill="currentColor"/>
+              <path d="M4.5 11.5a7.5 7.5 0 0 0 15 0" fill="none" stroke="currentColor"
+                    stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M12 19v4.5M7.5 23.5h9" fill="none" stroke="currentColor"
+                    stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+            <span class="hold-text">
+              <span class="hold-main">Hold to Talk</span>
+              <span class="hold-help">押している間、話そう</span>
+            </span>
+          </button>
+        </div>
+        <form id="speed-typed-form" class="typed-form" hidden>
+          <label for="speed-typed-answer">Type the time you would say</label>
+          <div class="typed-row">
+            <input id="speed-typed-answer" type="text" inputmode="text" autocomplete="off" spellcheck="false">
+            <button class="button button-primary" type="submit">Check</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="speed-intro" class="speed-intro" hidden>
+      <p class="speed-intro-jp" lang="ja">60秒で何問いけるかな？</p>
+      <p id="speed-intro-count" class="speed-intro-count">3</p>
+    </div>
+  </section>
+
+  <section id="screen-speed-result" class="screen summary-screen" aria-label="Speed challenge result">
+    <p class="eyebrow">TIME!</p>
+    <p id="speed-result-count" class="speed-result-count">0</p>
+    <p class="speed-result-label">correct</p>
+    <p id="speed-result-new-best" class="summary-new-best" hidden>NEW BEST!</p>
+    <div class="summary-stats speed-result-stats">
+      <div class="summary-stat"><strong id="speed-result-mistakes">0</strong><span>Mistakes</span></div>
+      <div class="summary-stat"><strong id="speed-result-streak">0</strong><span>Longest streak</span></div>
+      <div class="summary-stat"><strong id="speed-result-best">—</strong><span>Best</span></div>
+    </div>
+    <div class="button-row">
+      <button id="speed-again" class="button button-primary" type="button"><span lang="ja">もう一回</span></button>
+      <button id="speed-exit" class="button" type="button"><span lang="ja">もどる</span></button>
     </div>
   </section>
 
