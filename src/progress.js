@@ -8,7 +8,7 @@
 export const STORAGE_KEY = 'eslTime.v1';
 
 export const DEFAULT_SETTINGS = Object.freeze({
-  level: 1,
+  difficulty: 'mixed',
   practiceMode: 'normal',
   characterAudio: true,
   feedbackSounds: true,
@@ -67,12 +67,22 @@ function sanitizeRecord(value) {
   return record;
 }
 
+// Levels the teacher-facing difficulties replaced. A profile saved before the
+// difficulty screen existed keeps the teacher's intent rather than silently
+// snapping back to the default.
+const LEVEL_TO_DIFFICULTY = Object.freeze({
+  1: 'easy', 2: 'medium', 3: 'medium', 4: 'hard', 5: 'mixed', 6: 'hard',
+});
+
 function sanitizeSettings(value = {}) {
   const settings = { ...DEFAULT_SETTINGS };
-  const level = Number(value.level);
   const revealAfter = Number(value.revealAfter);
 
-  if ([1, 2, 3, 4, 5].includes(level)) settings.level = level;
+  if (['easy', 'medium', 'hard', 'mixed'].includes(value.difficulty)) {
+    settings.difficulty = value.difficulty;
+  } else if (LEVEL_TO_DIFFICULTY[Number(value.level)]) {
+    settings.difficulty = LEVEL_TO_DIFFICULTY[Number(value.level)];
+  }
   if (value.practiceMode === 'normal' || value.practiceMode === 'difficult') {
     settings.practiceMode = value.practiceMode;
   }

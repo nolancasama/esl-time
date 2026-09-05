@@ -1,35 +1,48 @@
-import { allLevels } from './data/times.js';
+import { allDifficulties, levelIdForDifficulty } from './data/times.js';
 import { Progress } from './progress.js';
 import { TimeGame } from './game.js';
 
 const progress = new Progress();
 const screens = [...document.querySelectorAll('.screen')];
-const levelGrid = document.querySelector('#level-grid');
-let returnScreen = 'screen-levels';
+const difficultyChoices = document.querySelector('#difficulty-choices');
+let returnScreen = 'screen-title';
 let lastSummary = null;
 
 function showScreen(id) {
   for (const screen of screens) screen.classList.toggle('is-visible', screen.id === id);
 }
 
-function buildLevelCards() {
-  levelGrid.replaceChildren();
-  for (const level of allLevels()) {
+function startGame() {
+  const { difficulty } = progress.getSettings();
+  showScreen('screen-game');
+  game.start({ levelId: levelIdForDifficulty(difficulty) });
+}
+
+function buildDifficultyChoices() {
+  difficultyChoices.replaceChildren();
+  for (const difficulty of allDifficulties()) {
     const button = document.createElement('button');
-    button.className = 'level-card';
+    button.className = 'difficulty-choice';
     button.type = 'button';
+    button.role = 'radio';
+    button.dataset.difficulty = difficulty.id;
+    // The filled dot carries the selection, not colour alone, so it stays
+    // obvious on a washed-out classroom projector.
     button.innerHTML = `
-      <span class="level-number">Level ${level.id}</span>
-      <span class="level-name"></span>
-      <span class="level-size">${level.times.length} times</span>
+      <span class="difficulty-dot" aria-hidden="true"></span>
+      <span class="difficulty-text">
+        <span class="difficulty-ja" lang="ja"></span>
+        <span class="difficulty-en"></span>
+      </span>
     `;
-    button.querySelector('.level-name').textContent = level.name;
+    button.querySelector('.difficulty-ja').textContent = difficulty.ja;
+    button.querySelector('.difficulty-en').textContent = `${difficulty.en} · ${difficulty.blurb}`;
     button.addEventListener('click', () => {
-      progress.updateSettings({ level: level.id });
-      showScreen('screen-game');
-      game.start({ levelId: level.id });
+      // Choosing a difficulty never starts a round; the child presses スタート.
+      progress.updateSettings({ difficulty: difficulty.id });
+      renderSettings();
     });
-    levelGrid.append(button);
+    difficultyChoices.append(button);
   }
 }
 
@@ -86,6 +99,11 @@ function renderSettings() {
       button.classList.toggle('is-selected', settingsValue(button.dataset.value) === settings[key]);
     }
   }
+  for (const button of difficultyChoices.querySelectorAll('.difficulty-choice')) {
+    const selected = button.dataset.difficulty === settings.difficulty;
+    button.classList.toggle('is-selected', selected);
+    button.setAttribute('aria-checked', String(selected));
+  }
 }
 
 function openSettings(from) {
@@ -104,16 +122,20 @@ for (const group of document.querySelectorAll('[data-setting]')) {
   });
 }
 
-document.querySelector('#level-settings').addEventListener('click', () => openSettings('screen-levels'));
+document.querySelector('#start-game').addEventListener('click', startGame);
+document.querySelector('#open-options').addEventListener('click', () => openSettings('screen-title'));
 document.querySelector('#game-settings').addEventListener('click', () => openSettings('screen-game'));
 document.querySelector('#game-back').addEventListener('click', () => {
   game.stop();
-  showScreen('screen-levels');
+  showScreen('screen-title');
 });
-document.querySelector('#settings-done').addEventListener('click', () => {
+function closeSettings() {
   showScreen(returnScreen);
   if (returnScreen === 'screen-game') game.resume();
-});
+}
+
+document.querySelector('#settings-done').addEventListener('click', closeSettings);
+document.querySelector('#settings-back').addEventListener('click', closeSettings);
 document.querySelector('#reset-progress').addEventListener('click', (event) => {
   if (!window.confirm('Reset all saved progress on this device?')) return;
   progress.reset();
@@ -125,12 +147,8 @@ document.querySelector('#practice-again').addEventListener('click', () => {
   showScreen('screen-game');
   game.start({ levelId: lastSummary.levelId, practiceMode: 'difficult' });
 });
-document.querySelector('#play-again').addEventListener('click', () => {
-  if (!lastSummary) return;
-  showScreen('screen-game');
-  game.start({ levelId: lastSummary.levelId });
-});
-document.querySelector('#change-level').addEventListener('click', () => showScreen('screen-levels'));
+document.querySelector('#play-again').addEventListener('click', startGame);
+document.querySelector('#change-level').addEventListener('click', () => showScreen('screen-title'));
 
-buildLevelCards();
+buildDifficultyChoices();
 renderSettings();

@@ -1,5 +1,5 @@
 import { matchTime, spokenForm } from './time-match.js';
-import { timeKey } from './data/times.js';
+import { levelIdForDifficulty, timeKey } from './data/times.js';
 import { createScheduler } from './scheduler.js';
 import { mountScene } from './scene.js';
 import { HoldToTalk, MIC, speechSupported } from './speech.js';
@@ -42,7 +42,7 @@ export class TimeGame {
   start({ levelId, practiceMode } = {}) {
     this.stop();
     const settings = this.progress.getSettings();
-    const selectedLevel = Number(levelId ?? settings.level);
+    const selectedLevel = Number(levelId ?? levelIdForDifficulty(settings.difficulty));
     const selectedMode = practiceMode ?? settings.practiceMode;
     this.audio.setSettings(settings);
     this.scheduler = createScheduler({
@@ -80,7 +80,7 @@ export class TimeGame {
     this.progress.recordShown(this.current.time);
     if (this.sceneMount) this.sceneMount.destroy();
     this.sceneMount = mountScene(this.elements.stage, this.current.scene, this.current.time);
-    this.elements.stage.setAttribute('aria-label', this.current.scene.placeholder);
+    this.elements.stage.setAttribute('aria-label', `${this.current.scene.name} scene`);
     this.audio.playCharacter(this.current.scene);
     this._setFeedback('');
     this._clearTranscript();

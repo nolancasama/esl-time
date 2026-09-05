@@ -7,14 +7,18 @@
   <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-  <section id="screen-levels" class="screen is-visible" aria-labelledby="level-title">
-    <header class="choose-head">
-      <p class="eyebrow">ESL TIME PRACTICE</p>
-      <h1 id="level-title">What Time Is It?</h1>
-      <p class="jp-copy">レベルをえらぼう</p>
-    </header>
-    <div id="level-grid" class="level-grid"></div>
-    <button id="level-settings" class="button button-quiet" type="button">⚙ Teacher Settings</button>
+  <section id="screen-title" class="screen title-screen is-visible" aria-labelledby="title-heading">
+    <div class="title-plate">
+      <h1 id="title-heading">What Time Is It?</h1>
+      <p class="title-jp">いま なんじ？</p>
+      <button id="start-game" class="start-button" type="button">
+        <span class="start-jp">スタート</span>
+        <span class="start-en">Start</span>
+      </button>
+      <button id="open-options" class="options-button" type="button">
+        <span lang="ja">オプション</span>
+      </button>
+    </div>
   </section>
 
   <section id="screen-game" class="screen" aria-label="Telling time game">
@@ -65,23 +69,22 @@
     <div class="button-row">
       <button id="practice-again" class="button button-primary" type="button">Practice Again</button>
       <button id="play-again" class="button" type="button">Play Again</button>
-      <button id="change-level" class="button button-quiet" type="button">Change Level</button>
+      <button id="change-level" class="button button-quiet" type="button"><span lang="ja">タイトル</span></button>
     </div>
   </section>
 
   <section id="screen-settings" class="screen settings-screen" aria-labelledby="settings-title">
     <div class="settings-panel">
-      <h2 id="settings-title">Teacher Settings</h2>
-      <p class="settings-intro">Changes are saved on this device.</p>
+      <button id="settings-back" class="button settings-back" type="button">
+        ← <span lang="ja">もどる</span>
+      </button>
+      <h2 id="settings-title" lang="ja">オプション</h2>
+      <p class="settings-intro">Options · Changes are saved on this device.</p>
 
-      <div class="setting-row">
-        <div><strong>Level</strong><small>Choose the time pool.</small></div>
-        <div class="segments" data-setting="level">
-          <button type="button" data-value="1">1</button><button type="button" data-value="2">2</button>
-          <button type="button" data-value="3">3</button><button type="button" data-value="4">4</button>
-          <button type="button" data-value="5">5</button>
-        </div>
-      </div>
+      <h3 class="difficulty-heading"><span lang="ja">難易度</span> <small>Difficulty</small></h3>
+      <div id="difficulty-choices" class="difficulty-choices" role="radiogroup"
+           aria-labelledby="settings-title"></div>
+
       <div class="setting-row">
         <div><strong>Practice mode</strong><small>Difficult uses saved missed times when enough exist.</small></div>
         <div class="segments" data-setting="practiceMode">
@@ -117,7 +120,9 @@
         <button id="reset-progress" class="button button-danger" type="button">Reset</button>
       </div>
       <div class="button-row settings-actions">
-        <button id="settings-done" class="button button-primary" type="button">Done</button>
+        <button id="settings-done" class="button button-primary" type="button">
+          ← <span lang="ja">もどる</span>
+        </button>
       </div>
     </div>
   </section>

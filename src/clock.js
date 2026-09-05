@@ -72,6 +72,51 @@ function analogRenderer(time, opts = {}) {
   return svg;
 }
 
+// Hands are drawn in a unit face of radius 100 and then mapped onto the scene's
+// painted ellipse. The non-uniform scale is what makes a hand land on the same
+// numeral the artwork shows: the painted numerals are foreshortened by exactly
+// the same ellipse, so the hands have to be too. Lengths stay inside the face
+// (minute 0.80, hour 0.55 of the radius) so no hand crosses the painted rim.
+const HAND_GEOMETRY = Object.freeze({
+  hour: { back: 9, tip: -55, width: 7.5 },
+  minute: { back: 11, tip: -80, width: 5.5 },
+});
+
+/**
+ * Hands only, for a clock already painted into the scene artwork.
+ * Returns an SVG <g> to append inside the scene's image-space overlay, NOT a
+ * standalone <svg> — the artwork supplies the face, rim, numerals and pin.
+ */
+function paintedHandsRenderer(time, opts = {}) {
+  const { cx = 0, cy = 0, rx = 100, ry = 100, rotation = 0 } = opts.geometry || {};
+  const group = svgElement('g', {
+    class: 'painted-hands',
+    role: 'img',
+    'aria-label': opts.label || `Clock showing ${time.h}:${String(time.m).padStart(2, '0')}`,
+    transform: `translate(${cx} ${cy}) rotate(${rotation}) scale(${rx / 100} ${ry / 100})`,
+  });
+
+  // The fractional hour angle is the lesson: 7:30 must sit between 7 and 8.
+  const hourAngle = (time.h % 12) * 30 + time.m * 0.5;
+  const minuteAngle = time.m * 6;
+
+  for (const [name, angle] of [['hour', hourAngle], ['minute', minuteAngle]]) {
+    const hand = HAND_GEOMETRY[name];
+    group.append(svgElement('line', {
+      class: `painted-hand painted-${name}-hand`,
+      x1: 0,
+      y1: hand.back,
+      x2: 0,
+      y2: hand.tip,
+      'stroke-width': hand.width,
+      transform: `rotate(${angle})`,
+    }));
+  }
+
+  group.append(svgElement('circle', { class: 'painted-pin', cx: 0, cy: 0, r: 5 }));
+  return group;
+}
+
 export function registerClockRenderer(type, fn) {
   if (!type || typeof fn !== 'function') throw new TypeError('A clock type and renderer are required.');
   renderers.set(type, fn);
@@ -84,3 +129,4 @@ export function renderClock(type, time, opts = {}) {
 }
 
 registerClockRenderer('analog', analogRenderer);
+registerClockRenderer('painted', paintedHandsRenderer);

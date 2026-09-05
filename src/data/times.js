@@ -30,7 +30,41 @@ const LEVEL_TABLE = Object.freeze([
       55: 0.04375,
     },
   },
+  {
+    id: 6,
+    name: 'Hard',
+    allowedMinutes: FIVE_MINUTES,
+    // Same pool as level 4, different sequencing: the eight minutes that are
+    // neither a whole hour nor a quarter carry ~72% of the weight, so "hard"
+    // is not a re-labelled "mixed". Whole and quarter hours still appear.
+    minuteWeights: {
+      0: 0.07,
+      15: 0.07,
+      30: 0.07,
+      45: 0.07,
+      5: 0.09,
+      10: 0.09,
+      20: 0.09,
+      25: 0.09,
+      35: 0.09,
+      40: 0.09,
+      50: 0.09,
+      55: 0.09,
+    },
+  },
 ]);
+
+// The four teacher-facing difficulties, in order of increasing challenge, each
+// mapping onto one pool above. Mixed is the default: a child should be able to
+// open the game and press start without choosing anything.
+const DIFFICULTY_TABLE = Object.freeze([
+  { id: 'easy', levelId: 1, en: 'Easy', ja: 'かんたん', blurb: 'Whole hours only' },
+  { id: 'medium', levelId: 3, en: 'Medium', ja: 'ふつう', blurb: 'Hours, quarters and halves' },
+  { id: 'hard', levelId: 6, en: 'Hard', ja: 'むずかしい', blurb: 'Every five minutes' },
+  { id: 'mixed', levelId: 5, en: 'Mixed', ja: 'ミックス', blurb: 'A balanced mixture' },
+]);
+
+export const DEFAULT_DIFFICULTY = 'mixed';
 
 function makeLevel(definition) {
   const allowedMinutes = [...definition.allowedMinutes];
@@ -57,9 +91,25 @@ export function getLevel(id) {
   return LEVELS.find((level) => level.id === Number(id)) || null;
 }
 
-/** Return the five immutable level definitions in teaching order. */
+/** Return the immutable level definitions in teaching order. */
 export function allLevels() {
   return [...LEVELS];
+}
+
+/** Return the four immutable difficulty definitions in teaching order. */
+export function allDifficulties() {
+  return [...DIFFICULTY_TABLE];
+}
+
+/** Return one difficulty definition, falling back to the default. */
+export function getDifficulty(id) {
+  return DIFFICULTY_TABLE.find((difficulty) => difficulty.id === id)
+    || DIFFICULTY_TABLE.find((difficulty) => difficulty.id === DEFAULT_DIFFICULTY);
+}
+
+/** The time pool a difficulty plays with. */
+export function levelIdForDifficulty(id) {
+  return getDifficulty(id).levelId;
 }
 
 /** Canonical storage and scheduling key. */

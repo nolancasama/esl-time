@@ -111,6 +111,131 @@ Why: the frozen round loop explicitly adds a time to the difficult pool after
 the reveal threshold. `no-time`, `empty`, and sub-300 ms holds remain free
 retries and never affect either progress or first-try credit.
 
+## 2026-09-05 — A title screen replaces level selection; Mixed is the default
+
+The first screen is now a title, one large `スタート` and a smaller
+`オプション`. The five level cards are gone from the entry path, and difficulty
+lives on the Options screen as four choices — かんたん / ふつう / むずかしい /
+ミックス — with ミックス the default on a fresh profile.
+
+Why: a Japanese elementary student should be able to open the game and play
+without reading or deciding anything. Making them pick one of five numbered
+levels before a single round put a teacher-facing decision in a child's way.
+
+Difficulty maps onto the existing frozen pools rather than replacing them, so
+level definitions stay the single source of truth for what times exist:
+easy=1, medium=3, hard=6, mixed=5. Level 2 (half hours) is no longer surfaced
+but still exists. A profile saved before this change keeps the teacher's
+intent — the old `level` setting migrates to the nearest difficulty instead of
+snapping back to the default.
+
+Hard is deliberately NOT an alias of Mixed. Both draw the full five-minute
+pool, but level 6 weights the eight non-quarter minutes to ~72% of deals while
+Mixed stays balanced at ~35%, measured over 480 dealt rounds.
+
+Difficulty changes the time pool and nothing else. Scene choice, clock size and
+placement, hold-to-talk, matcher strictness and retries are all untouched: the
+game tests telling the time in English, not finding a small clock.
+
+## 2026-09-05 — Finished artwork supplies the clock; the game draws only hands
+
+The twelve placeholder scenes are replaced with finished illustrations. Each
+painting already contains the clock body, face, numerals and centre pin, drawn
+deliberately WITHOUT hands. The game overlays only an hour hand, a minute hand
+and a small pin. There is no second, floating SVG clock face any more.
+
+Why: the clock now reads as an object inside the room rather than a quiz widget
+pasted over a picture, which was the intent in SPEC §8 all along.
+
+Geometry lives in `src/data/scenes.js` in SOURCE IMAGE PIXELS (the art is
+1536x1024), not stage percentages, and the hand overlay is an SVG whose viewBox
+is that same pixel box. One coordinate space, so hands cannot drift off the
+painted clock at any stage size or aspect.
+
+The painted faces are hand-drawn OVALS, not circles (the school library measures
+0.78 wide-to-tall). Each scene therefore stores ellipse semi-axes `rx`/`ry`, and
+hands are drawn in a unit circle then mapped through that ellipse. The painted
+numerals are foreshortened by the same ellipse, so a hand lands on the numeral a
+student would read. Measured by fitting the face region in each image rather
+than eyeballed; an optional `rotation` is supported but no scene needed one.
+
+## 2026-09-05 — Scenes fill the stage and push in to keep the clock readable
+
+The artwork is 3:2 but the game stage is far wider (about 2.6:1 at 1024x600).
+Fitting the whole picture (`contain`) left ~40% of the width empty and shrank
+every clock to 32-82 CSS px, below the 88 px readable floor already established
+for the placeholder clock. So scenes fill the stage instead, and `scene.js`
+computes ONE visible source rect that drives both the image's `object-position`
+and the overlay's `viewBox`.
+
+The rect prefers the artwork's own centre framing and pans only as far as needed
+to keep the clock plus a margin on screen, so no clock is ever cropped away —
+verified at 1024x600, 1366x768, 1920x1080 and portrait. Where a scene's painted
+clock is small in its own artwork (the distant tower in the town square) the
+view pushes in further until the face clears 88 px. Cost: the bottom of the
+composition, usually the character's torso, is cropped at wide aspect ratios.
+Rejected: letterboxing, which keeps the whole picture but fails the thing the
+game is actually for — reading the clock.
+
+## 2026-09-05 — Scene 10 is a town square, and the two libraries are named apart
+
+The delivered artwork for scene 10 is an outdoor town square with a clock tower,
+not the "Hallway" the original scene list named, so the scene is named for what
+is drawn. Scenes 11 and 12 became Art Room and Library as intended, but two
+scenes named "Library" is ambiguous in data and to a teacher, so they are
+"School Library" (7) and "Grand Library" (12, its painted face reads
+"Sunny Library").
+
+Why record it: the old names are still in earlier git history and in the frozen
+spec's scene table, so a future reader will otherwise think the mapping is wrong.
+
+## 2026-09-05 — Scene artwork ships as WebP
+
+The delivered PNGs were 28.2 MB for twelve scenes. They ship as WebP quality 88
+instead, 3.17 MB total (~264 KB each, 89% smaller), at the same 1536x1024.
+Checked at 4x zoom against the source: the painted numerals, which are the
+teaching content, are indistinguishable.
+
+Why: these load on school Chromebooks over school wifi, and 28 MB of scene art
+is a real barrier to a lesson starting on time.
+
+## 2026-09-05 — Per-scene times are demo data, not gameplay
+
+Each scene carries a `defaultTime`, used by `visual.html` and as a test fixture.
+Gameplay ignores it: the scheduler continues to shuffle times and scenes
+independently across the level pools (SPEC §5).
+
+Why: binding one fixed time per scene would collapse the five levels and the
+difficult-practice pool into twelve fixed rounds. The fixed pairs are useful for
+checking hand alignment against known artwork, which is exactly what they are
+kept for.
+
+## 2026-09-05 — "It's" is now required, reversing the original V1 decision
+
+An answer only counts as `match` / `wrong-time` when the student also says
+`it's` (or `its` / `it is`) somewhere in the utterance. A structurally valid
+time spoken without it — e.g. bare "seven o'clock" — now downgrades to
+`bad-grammar`, same consequence as any other malformed order. See
+`SPEC.md` §3.4a.
+
+Why: product decision that the taught model sentence is a full sentence
+("It's seven o'clock."), and a bare fragment should not silently grade as
+equally correct — that would teach the fragment instead of the sentence.
+
+Previous approach: V1 deliberately made `it's` optional and unrewarded
+("It's is never required and never rewarded" — old §3.3), reasoning that a
+false reject (a correct student marked wrong) is worse than a false accept.
+That asymmetry argument still holds for the *time itself* (§3.4 keeps
+accepting past/to forms, ambiguous digit renderings, etc.) — this decision
+narrows it specifically for the sentence frame, not the time grammar.
+
+Implementation note: `it's`/`its`/`it is` are still stripped from the token
+list before structure matching (they carry no time information and would
+break exact-length structure checks otherwise); their presence is checked
+separately against the pre-filler token list (`spokenIts` in
+`time-match.js`) and gates whether a structurally valid parse is allowed to
+stand as `valid`, rather than being folded into the structures themselves.
+
 ## 2026-09-04 — Authored clock sizes floor at 20%, above the pixel rescue
 
 Scene clock percentages start at 20% rather than the original 16-19%. This sits

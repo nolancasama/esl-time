@@ -40,45 +40,66 @@ button { color: inherit; cursor: pointer; }
 
 .screen.is-visible { display: flex; }
 
-#screen-levels {
+/* Title screen: the game's own artwork behind a scrim, then only a title, one
+   big start button and a quieter options button. A child should not have to
+   read or decide anything here. */
+#screen-title {
   align-items: center;
   justify-content: center;
-  gap: clamp(18px, 3vh, 32px);
   padding: 28px;
-  background: radial-gradient(circle at 50% 0%, #ffffff 0, #edf5fa 47%, #dce8f0 100%);
+  background: #14202a url("../assets/scenes/01-classroom.webp") center/cover no-repeat;
 }
 
-.choose-head { text-align: center; }
-.eyebrow { margin: 0 0 8px; color: var(--blue); font-size: 13px; font-weight: 800; letter-spacing: .14em; }
+.title-plate {
+  display: grid;
+  justify-items: center;
+  gap: clamp(14px, 2.4vh, 26px);
+  width: min(640px, 100%);
+  padding: clamp(26px, 4vh, 44px) clamp(24px, 4vw, 48px);
+  text-align: center;
+  border-radius: 28px;
+  /* Near-opaque: at .93 the chalkboard behind it read through the heading. */
+  background: rgba(255, 255, 255, .975);
+  box-shadow: 0 24px 60px rgba(14, 28, 40, .42);
+}
+
 h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
+.title-plate h1 { font-size: clamp(30px, 4.2vw, 50px); }
+.title-jp { margin: 0; color: var(--muted); font-size: clamp(17px, 2.4vw, 24px); font-weight: 800; }
 .jp-copy { margin: 10px 0 0; color: var(--muted); font-size: clamp(15px, 2vw, 20px); font-weight: 700; }
 
-.level-grid {
+.start-button {
   display: grid;
-  grid-template-columns: repeat(5, minmax(145px, 1fr));
-  gap: 14px;
-  width: min(1180px, 100%);
+  gap: 2px;
+  width: min(360px, 100%);
+  min-height: 104px;
+  padding: 14px 30px;
+  color: white;
+  border: none;
+  border-radius: 22px;
+  background: linear-gradient(#3f9bee, #2477cf);
+  box-shadow: 0 10px 0 #1b5da6, 0 18px 28px rgba(20, 60, 100, .34);
+}
+.start-button:active { transform: translateY(4px); box-shadow: 0 6px 0 #1b5da6, 0 12px 18px rgba(20, 60, 100, .3); }
+.start-jp { font-size: clamp(30px, 4.4vw, 42px); font-weight: 900; letter-spacing: .04em; }
+.start-en { font-size: clamp(13px, 1.5vw, 16px); font-weight: 800; opacity: .84; }
+
+.options-button {
+  min-height: 54px;
+  padding: 12px 30px;
+  border: 2px solid #b8c9d8;
+  border-radius: 999px;
+  background: white;
+  font-size: clamp(16px, 1.9vw, 19px);
+  font-weight: 800;
 }
 
-.level-card {
-  min-height: 168px;
-  padding: 22px;
-  text-align: left;
-  border: 2px solid #c5d5e3;
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, .88);
-  box-shadow: 0 10px 28px rgba(35, 61, 86, .08);
-}
-
-.level-card:focus-visible, .button:focus-visible, .top-button:focus-visible,
+.button:focus-visible, .top-button:focus-visible, .start-button:focus-visible,
+.options-button:focus-visible, .difficulty-choice:focus-visible,
 .hold-button:focus-visible, .segments button:focus-visible, input:focus-visible {
   outline: 4px solid #73b6ff;
   outline-offset: 3px;
 }
-
-.level-number { display: block; color: var(--blue); font-size: 15px; font-weight: 800; text-transform: uppercase; }
-.level-name { display: block; margin-top: 12px; font-size: clamp(21px, 2vw, 28px); font-weight: 800; line-height: 1.08; }
-.level-size { display: block; margin-top: 12px; color: var(--muted); font-size: 14px; font-weight: 700; }
 
 .button, .top-button {
   min-height: 54px;
@@ -88,7 +109,7 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
   background: white;
   font-weight: 800;
 }
-.button:active, .top-button:active, .level-card:active { transform: scale(.98); }
+.button:active, .top-button:active, .options-button:active, .difficulty-choice:active { transform: scale(.98); }
 .button-primary { color: white; border-color: var(--blue); background: var(--blue); }
 .button-quiet { background: transparent; }
 .button-danger { color: #972e37; border-color: #d99da2; background: #fff5f5; }
@@ -114,37 +135,23 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 #game-settings { justify-self: end; }
 .round-progress { font-size: clamp(15px, 2vw, 20px); font-weight: 800; font-variant-numeric: tabular-nums; }
 
-.stage { position: relative; min-height: 0; overflow: hidden; isolation: isolate; background: #dfe7e4; }
+.stage { position: relative; min-height: 0; overflow: hidden; isolation: isolate; background: #10171c; }
 .scene-layer { position: absolute; }
-.scene-background {
-  z-index: 0;
-  inset: 0;
-  display: grid;
-  place-items: end center;
-  padding: 14px;
-  background:
-    linear-gradient(to bottom, #d9e5e5 0 70%, #c5d1ca 70% 100%);
-}
-.scene-background::after {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 70%;
-  height: 4px;
-  content: "";
-  background: rgba(55, 79, 79, .2);
-}
-.scene-placeholder-label {
-  z-index: 1;
-  padding: 7px 14px;
-  border-radius: 999px;
-  color: #4f6267;
-  background: rgba(255,255,255,.66);
-  font-size: clamp(12px, 1.35vw, 16px);
-  font-weight: 800;
-  letter-spacing: .03em;
-}
-.scene-clock { z-index: 1; transform: translate(-50%, -50%); filter: drop-shadow(0 8px 7px rgba(28,43,49,.24)); }
+.scene-background { z-index: 0; inset: 0; }
+
+/* The image and the hand overlay occupy the same box and are driven from one
+   computed source rect (see fitScene in scene.js): object-position here and
+   the overlay's viewBox there resolve to the same crop, so the hands stay
+   locked to the painted clock at every stage size. */
+.scene-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.scene-hands { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+.painted-hand { stroke-linecap: round; }
+.painted-hour-hand { stroke: #23323d; }
+.painted-minute-hand { stroke: #23323d; }
+.painted-pin { fill: #23323d; }
+.painted-hands { filter: drop-shadow(0 1.5px 1.5px rgba(20, 30, 38, .38)); }
+
 .scene-foreground { z-index: 2; inset: 0; pointer-events: none; }
 
 .analog-clock { display: block; width: 100%; height: 100%; overflow: visible; }
@@ -158,8 +165,8 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 .clock-minute-hand { stroke: #276bb0; stroke-width: 5; }
 .clock-pin-outer { fill: #f5ab3d; stroke: #7c4c12; stroke-width: 2; }
 .clock-pin { fill: #fff7dc; }
-.stage.is-correct .scene-clock { animation: clock-correct .55s ease both; }
-@keyframes clock-correct { 45% { transform: translate(-50%, -50%) scale(1.06); } }
+.stage.is-correct .painted-hands { animation: clock-correct .55s ease both; }
+@keyframes clock-correct { 45% { filter: drop-shadow(0 0 10px rgba(96, 190, 130, .95)); } }
 
 .answer-dock {
   z-index: 5;
@@ -230,6 +237,46 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 .settings-panel { width: min(760px, 100%); margin: auto; padding: 25px; border: 2px solid #c7d5df; border-radius: var(--radius); background: white; }
 .settings-panel h2 { font-size: clamp(29px, 4vw, 42px); }
 .settings-intro { margin: 7px 0 20px; color: var(--muted); }
+/* Also at the top, so returning never depends on scrolling past every setting. */
+.settings-back { margin-bottom: 16px; }
+
+.difficulty-heading { margin: 22px 0 12px; font-size: clamp(21px, 2.6vw, 27px); }
+.difficulty-heading small { color: var(--muted); font-size: 15px; font-weight: 700; }
+
+.difficulty-choices { display: grid; gap: 10px; margin-bottom: 8px; }
+
+.difficulty-choice {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 68px;
+  padding: 12px 18px;
+  text-align: left;
+  border: 2px solid #c2d2de;
+  border-radius: 16px;
+  background: #f7fafc;
+}
+.difficulty-choice.is-selected { border-color: var(--blue); background: #e8f2fd; }
+
+/* A filled ring, not colour alone, so the choice reads on a washed-out
+   classroom projector and for a colour-blind teacher. */
+.difficulty-dot {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: 3px solid #8fa6b7;
+  border-radius: 50%;
+  background: white;
+}
+.difficulty-choice.is-selected .difficulty-dot {
+  border-color: var(--blue);
+  background: radial-gradient(circle, var(--blue) 0 42%, white 46% 100%);
+}
+
+.difficulty-text { display: grid; gap: 2px; }
+.difficulty-ja { font-size: clamp(19px, 2.2vw, 24px); font-weight: 900; }
+.difficulty-en { color: var(--muted); font-size: 14px; font-weight: 700; }
+
 .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 0; border-top: 1px solid #d9e1e7; }
 .setting-row strong { display: block; }
 .setting-row small { display: block; max-width: 370px; margin-top: 3px; color: var(--muted); }
@@ -238,17 +285,10 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 .segments button.is-selected { color: white; border-color: var(--blue); background: var(--blue); }
 .settings-actions { margin-top: 20px; }
 
-@media (max-width: 900px) {
-  .level-grid { grid-template-columns: repeat(2, minmax(150px, 1fr)); max-width: 650px; }
-  .level-card { min-height: 120px; }
-}
-
 @media (max-height: 700px) and (orientation: landscape) {
-  #screen-levels { gap: 14px; padding: 14px 24px; }
-  .choose-head .jp-copy { margin-top: 4px; }
-  .level-card { min-height: 112px; padding: 15px; }
-  .level-name { margin-top: 6px; }
-  .level-size { margin-top: 7px; }
+  #screen-title { padding: 14px 24px; }
+  .title-plate { gap: 12px; padding: 20px 30px; }
+  .start-button { min-height: 84px; }
   .game-shell { grid-template-rows: 56px minmax(0, 1fr) 148px; }
   .top-bar { padding-block: 4px; }
   .top-button { min-height: 44px; }
@@ -269,9 +309,6 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 }
 
 @media (max-width: 460px) {
-  #screen-levels { justify-content: flex-start; }
-  .level-grid { grid-template-columns: 1fr; }
-  .level-card { min-height: 100px; }
   .game-shell { grid-template-rows: 62px minmax(0, 1fr) 170px; }
   #game-settings { font-size: 0; }
   #game-settings::first-letter { font-size: 20px; }

@@ -35,6 +35,11 @@ Canonical key: `"7:15"` (`h + ':' + String(m).padStart(2,'0')`).
 
 ### Level pools (data-driven, one table, trivially editable)
 
+The twelve scenes are: Classroom, Kitchen, Living Room, Bedroom, Train Station,
+Park, School Library, Gym, Cafeteria, Town Square, Art Room, Grand Library.
+(Scenes 10-12 were originally listed as Hallway / Music Room / School Gate; the
+delivered artwork is what the names now follow — see DESIGN_DECISIONS.md.)
+
 | Level | Name | Minutes allowed | Size |
 |---|---|---|---|
 | 1 | Whole hours | 0 | 12 |
@@ -42,9 +47,27 @@ Canonical key: `"7:15"` (`h + ':' + String(m).padStart(2,'0')`).
 | 3 | Quarter hours | 0, 15, 30, 45 | 48 |
 | 4 | Five minutes | every multiple of 5 | 144 |
 | 5 | Mixed | every multiple of 5, weighted toward levels 1-3 | 144 |
+| 6 | Hard | every multiple of 5, weighted AWAY from whole/quarter hours | 144 |
 
 Level 5 weighting: sample so roughly 20% whole hours, 20% half hours, 25%
 quarter hours, 35% other five-minute times.
+
+Level 6 weighting: the eight minutes that are neither a whole hour nor a
+quarter carry ~72% of the weight. Levels 5 and 6 share a pool but must not
+deal alike — that difference is what separates ミックス from むずかしい.
+
+### Difficulties (teacher-facing)
+
+The four choices on the Options screen each select one pool above. They change
+the time pool and NOTHING else — not scene choice, clock size or placement,
+hold-to-talk behaviour, matcher strictness, retries or reveal count.
+
+| Difficulty | Japanese | Level | Meaning |
+|---|---|---|---|
+| Easy | かんたん | 1 | Whole hours only |
+| Medium | ふつう | 3 | Hours, halves and quarters |
+| Hard | むずかしい | 6 | Every five minutes, weighted hard |
+| Mixed | ミックス | 5 | Balanced mixture — **the default** |
 
 ---
 
@@ -125,8 +148,9 @@ In order:
    a student will produce — is not rejected. They cannot carry meaning inside a
    time expression, and the o'clock fold in step 2 has already consumed the one
    place `a` matters ("a clock").
-   Both `it's` and `it is` therefore vanish before parsing; "It's" is never
-   required and never rewarded.
+   `it's` / `its` / `it is` are dropped from the token list used to match
+   *structure* (they carry no time information), but their presence somewhere
+   in the utterance is itself required — see §3.4a.
 
 ### 3.4 Accepted structures
 
@@ -156,6 +180,27 @@ recorded on the attempt for future use; V1 shows no difference to the student.
 **Past/to forms are accepted deliberately.** The plan says do not TEACH them;
 rejecting valid English a student produces correctly would be a bad classroom
 moment. "seven thirty" remains the modelled form everywhere.
+
+### 3.4a "It's" is required grammar (decided; do not change without asking)
+
+An utterance is only ever judged `match` / `wrong-time` (i.e. the structure in
+§3.4 parsed as valid) when the student ALSO said `it's`, `its`, or `it is`
+somewhere in the utterance. A structurally valid time said without it —
+"seven o'clock" alone, with no `it's` — downgrades to `bad-grammar`, the exact
+same student-facing consequence ("Try again", counts as a wrong attempt, no
+reveal until `revealAfter`) as any other malformed order.
+
+This does not change how `it's` is parsed: it is still stripped from the
+token list before structure matching (§3.3 step 9), so it never conflicts
+with the accepted structures in §3.4. It only gates whether a valid structure
+is allowed to count.
+
+Rationale: the taught model sentence is a full sentence ("It's seven
+o'clock."), and grading a bare fragment as equally correct would silently
+teach the fragment instead. See DESIGN_DECISIONS.md for the reversal history —
+V1 originally made `it's` optional and unrewarded for the opposite reason
+(avoiding false rejects); this is a deliberate, later product decision to
+require it instead.
 
 ### 3.5 Rejected structures — must return `bad-grammar`, not `wrong-time`
 
@@ -193,36 +238,62 @@ answer is not revealed until `revealAfter` attempts.
 
 ## 4. Scenes (`src/data/scenes.js`)
 
-12 scenes, data-driven, one record each:
+12 scenes, data-driven, one record each. The scene artwork is finished
+illustration at **1536x1024**, and every clock already contains its own face,
+numerals and centre pin — painted deliberately **without hands**. The game
+supplies only the hands.
 
 ```js
 {
   id: 'scene-01',
-  name: 'Classroom',                                  // future art hint only
-  placeholder: 'Placeholder Scene 1',
-  clock: { x: 18, y: 22, size: 26, type: 'analog' },  // % of stage box
-  background: null,                                   // future asset
-  character: null,                                    // future foreground NPC
-  voice: null,                                        // future { src, speaker }
+  name: 'Classroom',
+  image: 'assets/scenes/01-classroom.webp',
+  defaultTime: { h: 7, m: 0 },        // demo/test only; gameplay ignores it
+  clock: {
+    type: 'painted',
+    cx: 443.0, cy: 156.5,             // face centre, in SOURCE IMAGE PIXELS
+    rx: 94.0,  ry: 96.5,              // ellipse semi-axes of the painted face
+    // rotation: 0                    // optional; no scene currently needs one
+  },
+  character: null,                    // future foreground NPC
+  voice: null,                        // future { src, speaker }
 }
 ```
 
-Clock positions must genuinely vary — spread across upper-left, upper-right,
-centre-left, centre-right, high-wall, lower-side, and one partly behind where a
-foreground character would stand. Sizes vary too, with an authored floor of 20%
-so a clock is never pinned to the emergency pixel minimum on an ordinary
-classroom screen. No two scenes share a position.
+Geometry is in source image pixels, never stage percentages. The hand overlay is
+an SVG sharing one computed visible rect with the `<img>` (see §4.1), so the two
+occupy a single coordinate space and hands cannot drift off the painted clock.
 
-**Layering is fixed now even though only one layer has art:** every scene
-renders `background layer` / `clock layer` / `foreground character layer`, in
-that order, as real elements. The character layer is present and empty in V1.
-Do not architect around there being no character.
+The painted faces are hand-drawn **ovals**, not circles, so `rx`/`ry` are stored
+separately and hands are drawn in a unit circle then mapped through that
+ellipse. The numerals are foreshortened identically, so a hand lands on the
+numeral a student reads.
+
+**Layering is fixed:** every scene renders `background layer` (artwork + hand
+overlay) / `foreground character layer`, in that order, as real elements. The
+character layer is present and empty. Do not architect around there being no
+character.
 
 Voice: each scene names its own audio independently, so 6-8 different speakers
 can later be distributed across the 12 scenes. Missing audio fails silently.
 
-`clock.type` is dispatched through a renderer registry so `digital`, `alarm`,
-`microwave`, `station` can be added later. V1 registers `analog` only.
+`clock.type` is dispatched through a renderer registry. `painted` (hands only,
+returns an SVG `<g>` for the scene overlay) is what every scene uses; `analog`
+(a complete standalone SVG clock) remains registered as the artwork-free
+fallback. `digital`, `alarm`, `microwave` can be added later.
+
+### 4.1 Framing (`fitScene` in `src/scene.js`)
+
+The artwork is 3:2; the stage is much wider. Scenes therefore **fill** the stage
+rather than letterboxing, and one computed visible source rect drives both the
+image's `object-position` and the overlay's `viewBox`.
+
+The rect prefers the artwork's own centre framing and pans only as far as needed
+to keep the clock plus a `1.45x` radius margin on screen — **no clock is ever
+cropped away, in any supported size or orientation.** If a scene's painted clock
+would still render below the **88 CSS px** readable floor, the view pushes in
+further until it clears. Anything else in the composition may be cropped; the
+clock may not.
 
 ---
 
@@ -283,6 +354,15 @@ default off) reveals it, and then only after the hold ends.
 
 ## 8. UI
 
+**Title screen.** Only three things: the title, one large `スタート` button and
+a smaller `オプション` button, on the game's own artwork. No difficulty choice,
+no level cards, no instructions, no statistics, no teacher controls. A child
+opens the game, presses `スタート`, and plays at the default difficulty.
+
+`オプション` opens the Options screen (§9), which leads with `難易度` as four
+large choices marked by a filled radio dot, not colour alone. Choosing a
+difficulty never starts a round; `もどる` returns to the title, top and bottom.
+
 - Scene fills most of the screen; the clock reads as an object inside the
   scene, not a floating quiz card.
 - Bottom-centre: one large "🎙 Hold to Talk" button, minimum 96 px tall and
@@ -300,7 +380,7 @@ default off) reveals it, and then only after the hold ends.
 
 | Setting | Values | Default |
 |---|---|---|
-| Level | 1-5 | 1 |
+| Difficulty | easy / medium / hard / mixed | **mixed** |
 | Practice mode | normal / difficult | normal |
 | Character audio | on / off | on |
 | Feedback sounds | on / off | on |
