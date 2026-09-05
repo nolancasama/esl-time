@@ -361,10 +361,21 @@ default off) reveals it, and then only after the hold ends.
 
 ## 8. UI
 
-**Title screen.** Only three things: the title, one large `スタート` button and
-a smaller `オプション` button, on the game's own artwork. No difficulty choice,
-no level cards, no instructions, no statistics, no teacher controls. A child
-opens the game, presses `スタート`, and plays at the default difficulty.
+**Title screen.** Only three things: the title lockup (`What Time Is It?` over
+`いま なんじ？`), one large `スタート` button and a smaller `オプション` button.
+No difficulty choice, no level cards, no instructions, no statistics, no
+teacher controls, and no decorative clock. A child opens the game, presses
+`スタート`, and plays at the default difficulty.
+
+It is a screen of its own: NOT a scene photo, which read as the title being
+overlaid on a round already in progress. The background is a light tonal field
+with a slow abstract drift; nothing on it may be ring-shaped, because a ring
+here reads as another clock. Composition is two blocks (lockup, then actions)
+sitting slightly above centre, with a deliberately larger gap between them than
+inside either. The title uses `--font-display`, a locally-available stack — no
+webfont is ever downloaded. Entry is a staggered fade-and-rise finishing inside
+600 ms, using `animation-fill-mode: backwards` so it never leaves a transform
+asserted over a button's pressed state.
 
 `オプション` opens the Options screen (§9), which leads with `難易度` as four
 large choices marked by a filled radio dot, not colour alone. Choosing a

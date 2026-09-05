@@ -8,17 +8,21 @@
 </head>
 <body>
   <section id="screen-title" class="screen title-screen is-visible" aria-labelledby="title-heading">
+    <div class="title-glow" aria-hidden="true"></div>
     <div class="title-plate">
-      <div id="title-clock" class="title-clock" aria-hidden="true"></div>
-      <h1 id="title-heading">What Time Is It?</h1>
-      <p class="title-jp">いま なんじ？</p>
-      <button id="start-game" class="start-button" type="button">
-        <span class="start-jp">スタート</span>
-        <span class="start-en">Start</span>
-      </button>
-      <button id="open-options" class="options-button" type="button">
-        <span lang="ja">オプション</span>
-      </button>
+      <div class="title-lockup">
+        <h1 id="title-heading">What <span class="title-accent">Time</span> Is It?</h1>
+        <p class="title-jp" lang="ja">いま なんじ？</p>
+      </div>
+      <div class="title-actions">
+        <button id="start-game" class="start-button" type="button">
+          <span class="start-jp" lang="ja">スタート</span>
+          <span class="start-en">Start</span>
+        </button>
+        <button id="open-options" class="options-button" type="button">
+          <span lang="ja">オプション</span>
+        </button>
+      </div>
     </div>
   </section>
 

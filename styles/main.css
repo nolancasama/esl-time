@@ -11,6 +11,9 @@
   --line: #c8d3df;
   --radius: 20px;
   --font: "Trebuchet MS", "Hiragino Maru Gothic ProN", "Noto Sans JP", system-ui, sans-serif;
+  /* Title lockup only. Trebuchet is friendly but soft at display sizes; this
+     is the cleanest face each platform already has, so nothing is downloaded. */
+  --font-display: Inter, system-ui, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -42,58 +45,135 @@ button { color: inherit; cursor: pointer; }
 
 /* Title screen: a screen of its own. It deliberately does NOT sit on a scene
    photo — that read as the title being overlaid on a round already in
-   progress. Just a title, one big start button and a quieter options button. */
+   progress. The decorative analog clock that used to sit above the title is
+   gone too: it competed with the real clocks the game is actually about, and
+   made the screen read as a worksheet header. Typography, spacing and one slow
+   tonal drift carry it instead. */
 #screen-title {
   align-items: center;
   justify-content: center;
   padding: 28px;
-  background: radial-gradient(circle at 50% 0%, #ffffff 0, #edf5fa 47%, #dce8f0 100%);
+  background:
+    radial-gradient(72% 54% at 50% -12%, #ffffff 0, rgba(255, 255, 255, 0) 64%),
+    linear-gradient(168deg, #f7fbfe 0%, #e4eef8 44%, #cfe0ef 100%);
 }
 
+/* Two oversized tonal fields drifting slowly against each other. Abstract on
+   purpose: anything ring-shaped here would read as yet another clock. The
+   wrapper clips its own child, so the screen keeps its scroll behaviour. */
+.title-glow { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.title-glow::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(40% 42% at 20% 24%, rgba(64, 130, 208, .30) 0, rgba(64, 130, 208, 0) 70%),
+    radial-gradient(44% 46% at 81% 74%, rgba(96, 166, 224, .34) 0, rgba(96, 166, 224, 0) 72%),
+    radial-gradient(32% 36% at 70% 10%, rgba(146, 188, 234, .26) 0, rgba(146, 188, 234, 0) 70%),
+    /* One barely-there warm field: an all-cool screen tips into stock SaaS. */
+    radial-gradient(34% 30% at 12% 88%, rgba(255, 214, 160, .20) 0, rgba(255, 214, 160, 0) 72%);
+  animation: title-drift 26s ease-in-out infinite alternate;
+}
+@keyframes title-drift {
+  from { transform: translate3d(-1.4%, -1.1%, 0) scale(1); }
+  to { transform: translate3d(1.6%, 1.4%, 0) scale(1.06); }
+}
+
+/* Two blocks, not five evenly stacked items: the lockup, then the actions,
+   with a deliberately larger gap between them than inside either. Sitting a
+   little above centre reads as composed; dead centre read as a placeholder. */
 .title-plate {
+  position: relative;
+  z-index: 1;
   display: grid;
   justify-items: center;
-  gap: clamp(14px, 2.4vh, 26px);
-  width: min(640px, 100%);
-  padding: clamp(26px, 4vh, 44px) clamp(24px, 4vw, 48px);
+  gap: clamp(34px, 6.5vh, 74px);
+  width: min(620px, 92vw);
+  margin-bottom: clamp(16px, 5vh, 58px);
   text-align: center;
 }
 
-/* Ties the title to the game's subject without a scene photo behind it, which
-   read as the title being overlaid on a round already in progress. */
-.title-clock { width: clamp(96px, 13vh, 150px); }
-.title-clock .analog-clock { display: block; width: 100%; height: auto; filter: drop-shadow(0 8px 16px rgba(30, 52, 74, .18)); }
+.title-lockup { display: grid; justify-items: center; gap: clamp(8px, 1.4vh, 15px); }
+.title-actions { display: grid; justify-items: center; gap: clamp(14px, 2.4vh, 22px); }
 
 h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
-.title-plate h1 { font-size: clamp(30px, 4.2vw, 50px); }
-.title-jp { margin: 0; color: var(--muted); font-size: clamp(17px, 2.4vw, 24px); font-weight: 800; }
-.jp-copy { margin: 10px 0 0; color: var(--muted); font-size: clamp(15px, 2vw, 20px); font-weight: 700; }
+.title-plate h1 {
+  color: var(--navy);
+  font-family: var(--font-display);
+  font-size: clamp(34px, 5.2vw, 62px);
+  font-weight: 800;
+  line-height: 1.04;
+  text-wrap: balance;
+  letter-spacing: -.025em;
+}
+/* One word carries the accent. Same weight, same size — only the colour
+   changes, so it reads as typographic rather than as decoration. */
+.title-accent { color: #2f72c8; }
 
+.title-jp {
+  margin: 0;
+  color: #7d92aa;
+  font-size: clamp(16px, 2vw, 22px);
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+
+/* Cleaner than the old arcade-style base: a gradient fill with soft elevation
+   and a hairline top highlight, rather than a thick fake button body. */
 .start-button {
   display: grid;
-  gap: 2px;
-  width: min(360px, 100%);
-  min-height: 104px;
+  gap: 3px;
+  width: min(320px, 82vw);
+  min-height: 86px;
   padding: 14px 30px;
   color: white;
   border: none;
-  border-radius: 22px;
-  background: linear-gradient(#3f9bee, #2477cf);
-  box-shadow: 0 10px 0 #1b5da6, 0 18px 28px rgba(20, 60, 100, .34);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #3d8ae4 0, #2569bf 100%);
+  box-shadow: 0 10px 24px rgba(28, 78, 138, .30), inset 0 1px 0 rgba(255, 255, 255, .28);
+  transition: transform .12s ease, box-shadow .12s ease;
 }
-.start-button:active { transform: translateY(4px); box-shadow: 0 6px 0 #1b5da6, 0 12px 18px rgba(20, 60, 100, .3); }
-.start-jp { font-size: clamp(30px, 4.4vw, 42px); font-weight: 900; letter-spacing: .04em; }
-.start-en { font-size: clamp(13px, 1.5vw, 16px); font-weight: 800; opacity: .84; }
-
-.options-button {
-  min-height: 54px;
-  padding: 12px 30px;
-  border: 2px solid #b8c9d8;
-  border-radius: 999px;
-  background: white;
-  font-size: clamp(16px, 1.9vw, 19px);
+.start-button:active {
+  transform: translateY(1px) scale(.99);
+  box-shadow: 0 5px 13px rgba(28, 78, 138, .28), inset 0 1px 0 rgba(255, 255, 255, .22);
+}
+.start-jp {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.6vw, 34px);
   font-weight: 800;
+  letter-spacing: .05em;
 }
+.start-en {
+  font-size: clamp(12px, 1.4vw, 14px);
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  opacity: .78;
+}
+
+/* Clearly secondary: no fill, no shadow, quieter colour. */
+.options-button {
+  min-height: 46px;
+  padding: 10px 26px;
+  color: #5d7590;
+  border: 1.5px solid #c3d2e0;
+  border-radius: 999px;
+  background: transparent;
+  font-size: clamp(14px, 1.6vw, 16px);
+  font-weight: 800;
+  letter-spacing: .06em;
+  transition: color .14s ease, border-color .14s ease, background .14s ease;
+}
+.options-button:hover { color: var(--navy); border-color: #a5bbd0; background: rgba(255, 255, 255, .62); }
+
+/* A short staggered settle on entry, finished inside 600ms. `backwards`, not
+   `both`: a forwards fill would keep asserting transform: none afterwards and
+   would silently kill the Start button's pressed state. */
+.title-plate h1 { animation: title-rise .42s cubic-bezier(.22, .7, .3, 1) backwards; }
+.title-jp { animation: title-rise .42s cubic-bezier(.22, .7, .3, 1) .08s backwards; }
+.start-button { animation: title-rise .42s cubic-bezier(.22, .7, .3, 1) .17s backwards; }
+.options-button { animation: title-rise .42s cubic-bezier(.22, .7, .3, 1) .26s backwards; }
+@keyframes title-rise { from { opacity: 0; transform: translateY(11px); } }
 
 .button:focus-visible, .top-button:focus-visible, .start-button:focus-visible,
 .options-button:focus-visible, .difficulty-choice:focus-visible,
@@ -481,9 +561,10 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 .settings-actions { margin-top: 20px; }
 
 @media (max-height: 700px) and (orientation: landscape) {
-  #screen-title { padding: 14px 24px; }
-  .title-plate { gap: 12px; padding: 20px 30px; }
-  .start-button { min-height: 84px; }
+  #screen-title { padding: 16px 24px; }
+  .title-plate { gap: clamp(20px, 4.6vh, 40px); margin-bottom: clamp(6px, 3vh, 24px); }
+  .title-plate h1 { font-size: clamp(30px, 4.4vw, 50px); }
+  .start-button { min-height: 72px; }
   .top-button { min-height: 44px; }
   .hold-button { min-height: 96px; padding-block: 8px; }
   .answer-dock { gap: 3px; padding-top: 8px; }

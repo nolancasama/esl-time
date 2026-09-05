@@ -377,3 +377,46 @@ child who read the clock correctly should not fail on the recogniser's
 transcription. The tolerance is bounded to the existing hour-minute structure —
 it is not a general loosening, and every other rule still applies, including
 the requirement to say "it's".
+
+## 2026-09-05 — The interface speaks Japanese; English is reserved for the lesson
+
+Navigation, results, status and settings are in Japanese. English is kept only
+where it IS the content being taught: the model sentence, the clock times, the
+game's own title, and the Hold to Talk label (which already carries
+「押している間、話そう」 beneath it).
+
+Why: the players are Japanese elementary students. English chrome makes them
+decode the interface before they can practise the thing the interface is for,
+and a word like "First try" is harder than anything the game actually teaches.
+Keeping the lesson in English preserves the point of the exercise; making the
+furniture Japanese removes a tax that taught nothing.
+
+Japanese runs are marked `lang="ja"` against the document's `lang="en"`. The
+feedback line switches to `lang="en"` when it shows the revealed model
+sentence, since that one string is English by design.
+
+## 2026-09-05 — The title screen drops its decorative clock
+
+The analog clock above the title is gone, along with its markup, mount and CSS.
+The screen is now the title lockup, スタート and オプション over a light tonal
+background with one slow abstract drift.
+
+Why: the clock made the screen read as a worksheet header, and it competed with
+the real clocks the game is about — the first clock a child sees should be one
+they have to read. Nothing replaces it: no mascot, no icon, no illustration.
+Typography, spacing and background depth carry the screen instead.
+
+Deliberate constraints that follow: nothing decorative here may be ring-shaped
+(a ring reads as another clock), the background is never a scene photo (that
+read as the title overlaid on a round in progress), and no webfont is
+downloaded — `--font-display` is a locally-available stack.
+
+The Start button lost its thick offset "arcade base" for a gradient fill with
+soft elevation; the toy-like depth was the main thing making the screen read as
+amateur. `animation-fill-mode` on the entry stagger is `backwards`, not `both`:
+a forwards fill keeps asserting `transform: none` after the animation and would
+silently kill the button's pressed state — the same bug the replay button hit.
+
+`analogRenderer` in `clock.js` is now unused by the app but is KEPT: it is the
+clock registry's only other registered type and the reference for adding new
+clock styles, which SPEC documents as the extension point.

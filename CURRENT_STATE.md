@@ -8,9 +8,12 @@ frozen matcher.
 ## What Exists
 
 - Four sibling screens: title, game, session summary, and options.
-- Title screen is deliberately bare: title, large `スタート`, smaller
-  `オプション`. Difficulty (かんたん / ふつう / むずかしい / ミックス) lives in
-  Options and defaults to ミックス, so a child can open and play immediately.
+- Title screen is deliberately bare: title lockup, large `スタート`, smaller
+  `オプション`, on a light tonal background with a slow abstract drift. No
+  decorative clock. Difficulty (かんたん / ふつう / むずかしい / ミックス) lives
+  in Options and defaults to ミックス, so a child can open and play immediately.
+- The interface speaks Japanese; English is kept only where it is the lesson
+  (the model sentence, the clock times, the game's title, Hold to Talk).
 - Five data-driven time levels and twelve finished illustrated scenes
   (Classroom, Kitchen, Living Room, Bedroom, Train Station, Park, School
   Library, Gym, Cafeteria, Town Square, Art Room, Grand Library) shipped as

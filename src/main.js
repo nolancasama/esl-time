@@ -2,7 +2,6 @@ import { allDifficulties, levelIdForDifficulty } from './data/times.js';
 import { Progress } from './progress.js';
 import { TimeGame, formatRunTime, ENABLE_SCORING } from './game.js';
 import { SpeedRound } from './speed-round.js';
-import { renderClock } from './clock.js';
 
 const progress = new Progress();
 const screens = [...document.querySelectorAll('.screen')];
@@ -226,12 +225,6 @@ document.querySelector('#speed-back').addEventListener('click', () => leaveSpeed
 document.querySelector('#speed-again').addEventListener('click', startSpeedRound);
 document.querySelector('#speed-exit').addEventListener('click', () => leaveSpeedRound('screen-summary'));
 document.querySelector('#change-level').addEventListener('click', () => showScreen('screen-title'));
-
-// The standalone analog renderer, otherwise unused now that every scene paints
-// its own clock. 10:10 is the classic display setting: hands up and symmetric.
-document.querySelector('#title-clock').append(renderClock('analog', { h: 10, m: 10 }, {
-  label: 'Decorative clock',
-}));
 
 // Scoring is off for now, so its HUD is not shown at all.
 document.querySelector('#run-timer-badge').hidden = !ENABLE_SCORING;
