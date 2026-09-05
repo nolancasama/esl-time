@@ -372,14 +372,20 @@ difficulty never starts a round; `もどる` returns to the title, top and botto
 
 - The scene fills the whole screen; the clock reads as an object inside the
   room, not a floating quiz card.
-- Controls sit directly on the artwork over a gradient scrim, in ONE slim row
-  along the bottom edge: Back and the round counter on the left, Hold to Talk
-  centred, Settings on the right, with the feedback line just above. Nothing is
-  placed over the upper picture, where every painted clock is.
-- That dock floats on the picture, so its height is picture hidden: keep it
-  near 150 px and never give it rows it does not need. Back, the counter and
-  Settings must live OUTSIDE `#speech-controls`, which is hidden wholesale by
-  the typed fallback.
+- Controls sit directly on the artwork over a gradient scrim: Back top left,
+  Settings top right, the score badge top centre, and Hold to Talk with the
+  feedback line above it along the bottom. Corner buttons are safe — no scene's
+  painted clock reaches a corner — but a full-width top BAR is not, and would
+  clip several clocks.
+- The score badge is centred, and steps aside automatically when a scene paints
+  its clock under the centre (the station and the grand library do). Reading the
+  clock outranks the badge holding position.
+- The bottom dock floats on the picture, so its height is picture hidden: keep
+  it near 150 px and never give it rows it does not need. Back and Settings must
+  live OUTSIDE `#speech-controls`, which the typed fallback hides wholesale.
+- The score is the one loud element: it pops, flashes green and plays a rising
+  cue when it increases. It reads `correct / 12` against the fixed session
+  length, never a moving denominator.
 - Bottom-centre: one large "🎙 Hold to Talk" button, minimum 96 px tall and
   240 px wide, with Japanese helper text beneath: 押している間、話そう.
   While held it reads "Listening…".

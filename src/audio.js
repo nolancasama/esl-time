@@ -92,6 +92,13 @@ export class AudioManager {
       if (kind === 'correct') {
         this._tone(523.25, now, 0.10, 0.055);
         this._tone(659.25, now + 0.09, 0.14, 0.05);
+      } else if (kind === 'score') {
+        // A brighter arpeggio than 'correct', for the score ticking up: C-E-G-C
+        // climbing an octave so it reads as a reward rather than a repeat.
+        this._tone(523.25, now, 0.07, 0.038);
+        this._tone(659.25, now + 0.055, 0.07, 0.038);
+        this._tone(783.99, now + 0.11, 0.09, 0.04);
+        this._tone(1046.5, now + 0.175, 0.20, 0.045);
       } else {
         this._tone(220, now, 0.16, 0.035, 'triangle');
       }

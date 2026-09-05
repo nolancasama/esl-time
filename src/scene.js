@@ -29,8 +29,12 @@ function layer(className) {
   return element;
 }
 
-/** Mount one scene and keep clock updates isolated from the other scene layers. */
-export function mountScene(stage, scene, time) {
+/**
+ * Mount one scene and keep clock updates isolated from the other scene layers.
+ * `onFit` receives the painted clock's rectangle in stage pixels whenever the
+ * framing is computed, so overlaid UI can keep clear of it.
+ */
+export function mountScene(stage, scene, time, { onFit } = {}) {
   const background = layer('scene-background');
 
   const image = document.createElement('img');
@@ -72,6 +76,17 @@ export function mountScene(stage, scene, time) {
     const slackY = SCENE_IMAGE.height - visibleHeight;
     image.style.objectPosition = `${slackX ? (x / slackX) * 100 : 50}% ${slackY ? (y / slackY) * 100 : 50}%`;
     overlay.setAttribute('viewBox', `${x} ${y} ${visibleWidth} ${visibleHeight}`);
+
+    if (onFit) {
+      const pixels = box.width / visibleWidth;
+      onFit({
+        left: (scene.clock.cx - scene.clock.rx - x) * pixels,
+        right: (scene.clock.cx + scene.clock.rx - x) * pixels,
+        top: (scene.clock.cy - scene.clock.ry - y) * pixels,
+        bottom: (scene.clock.cy + scene.clock.ry - y) * pixels,
+        width: box.width,
+      });
+    }
   };
 
   let currentTime = time;

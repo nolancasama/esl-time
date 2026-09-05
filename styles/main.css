@@ -124,18 +124,98 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
   background: rgba(18,30,40,.55);
   backdrop-filter: blur(6px);
 }
-/* Its own pill rather than a heavier scrim: the counter has to stay readable
-   over a bright cafeteria table as well as a dark library, and a light scrim
-   keeps more of the artwork visible. */
-.round-progress {
-  padding: 5px 14px;
-  border-radius: 999px;
-  font-size: clamp(14px, 1.7vw, 18px);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
+
+/* Back and Settings live in the top corners where they are expected. A
+   full-width bar would clip the painted clocks, but the corners themselves are
+   clear in all twelve scenes: the rightmost clock stops well short of them. */
+.corner-button {
+  position: absolute;
+  z-index: 6;
+  top: max(12px, env(safe-area-inset-top));
+  min-height: 48px;
+  padding: 9px 16px;
   color: white;
-  background: rgba(13, 23, 32, .62);
+  border: 2px solid rgba(255,255,255,.3);
+  border-radius: 999px;
+  background: rgba(13, 23, 32, .55);
   backdrop-filter: blur(6px);
+  font-weight: 800;
+}
+.corner-left { left: max(12px, env(safe-area-inset-left)); }
+/* Fixed circle with no padding, so a larger glyph grows the icon and not the
+   button. */
+.corner-right {
+  right: max(12px, env(safe-area-inset-right));
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  font-size: 27px;
+  line-height: 1;
+}
+
+/* The score sits centred at the top and is the one piece of UI allowed to be
+   loud: it is the reward. Centred with auto margins rather than a transform so
+   the celebration animation can own `transform` outright. */
+.score-badge {
+  position: absolute;
+  z-index: 6;
+  top: max(12px, env(safe-area-inset-top));
+  right: 0;
+  left: 0;
+  width: max-content;
+  margin-inline: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 7px 18px;
+  border: 2px solid rgba(255,255,255,.22);
+  border-radius: 999px;
+  color: white;
+  background: linear-gradient(160deg, rgba(47,114,200,.82), rgba(13,23,39,.82));
+  box-shadow: 0 6px 18px rgba(8, 18, 30, .35);
+  backdrop-filter: blur(7px);
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+}
+/* Stepped aside when the scene's clock sits under the centre. Kept clear of
+   the Back and Settings buttons at each end. */
+.score-badge.is-shifted-left { margin-inline: 132px auto; }
+.score-badge.is-shifted-right { margin-inline: auto 80px; }
+
+.score-star { color: #ffc65c; font-size: clamp(15px, 1.8vw, 19px); }
+.score-correct { font-size: clamp(20px, 2.5vw, 28px); line-height: 1; transition: color .25s ease; }
+.score-sep { color: rgba(255,255,255,.5); font-size: clamp(14px, 1.7vw, 18px); }
+.score-total { color: rgba(255,255,255,.72); font-size: clamp(14px, 1.7vw, 18px); }
+
+.score-badge.is-scoring { animation: score-bump .62s cubic-bezier(.22, 1.5, .36, 1) both; }
+.score-badge.is-scoring .score-correct { color: #8affc4; }
+.score-badge.is-scoring .score-star { animation: score-star .62s ease both; }
+@keyframes score-bump {
+  0% { transform: scale(1); box-shadow: 0 6px 18px rgba(8,18,30,.35); }
+  38% { transform: scale(1.24); box-shadow: 0 0 0 7px rgba(122, 240, 180, .28), 0 8px 22px rgba(8,18,30,.4); }
+  100% { transform: scale(1); box-shadow: 0 6px 18px rgba(8,18,30,.35); }
+}
+@keyframes score-star { 40% { color: #8affc4; transform: rotate(-18deg) scale(1.35); } }
+
+/* The +1 that flies off the badge. */
+.score-pop {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  opacity: 0;
+  color: #8affc4;
+  font-size: clamp(17px, 2vw, 22px);
+  font-weight: 900;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+  pointer-events: none;
+}
+.score-badge.is-scoring .score-pop { animation: score-pop .95s ease-out both; }
+@keyframes score-pop {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(.7); }
+  22% { opacity: 1; transform: translate(-50%, -16px) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -46px) scale(1); }
 }
 
 .stage { position: absolute; inset: 0; overflow: hidden; isolation: isolate; background: #10171c; }
@@ -184,26 +264,16 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
   left: 0;
   display: grid;
   justify-items: center;
-  gap: 5px;
-  padding: 12px max(14px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-bottom));
+  gap: 6px;
+  /* Generous bottom padding: the hold control is the thing a child aims at, and
+     it should not sit against the edge of the screen. */
+  padding: 12px max(14px, env(safe-area-inset-left)) max(26px, env(safe-area-inset-bottom));
   background: linear-gradient(to bottom, rgba(11, 20, 28, 0) 0%, rgba(11, 20, 28, .5) 45%, rgba(11, 20, 28, .8) 100%);
   pointer-events: none;
 }
 .answer-dock > * { pointer-events: auto; }
 
-/* Back and the round counter share the left, Settings the right, so the hold
-   control stays centred without needing rows of its own. */
-.dock-row {
-  display: flex;
-  align-items: center;
-  gap: clamp(8px, 1.6vw, 20px);
-  width: 100%;
-  pointer-events: none;
-}
-.dock-row > * { pointer-events: auto; }
-.dock-side { display: flex; flex: 1 1 0; align-items: center; gap: 10px; min-width: 0; }
-.dock-side-end { justify-content: flex-end; }
-.dock-center { flex: 0 1 auto; }
+.dock-center { display: flex; justify-content: center; width: 100%; }
 
 .feedback-line { min-height: 26px; color: white; font-size: clamp(17px, 2.2vw, 25px); font-weight: 800; text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.7); }
 .feedback-line.is-correct { color: #7af0b4; }
@@ -213,9 +283,10 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 .hold-button {
   position: relative;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
+  gap: 14px;
   min-width: 240px;
   min-height: 96px;
   padding: 12px 30px;
@@ -228,7 +299,11 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
   background: #71b9fa;
   box-shadow: 0 7px 0 #2d69a1;
 }
-.hold-main { font-size: clamp(21px, 2.4vw, 29px); font-weight: 900; }
+/* The mic is sized to the height of the two stacked lines beside it and
+   centred against them, so the pairing reads as one unit. */
+.hold-text { display: flex; flex-direction: column; align-items: center; }
+.mic-icon { flex: none; width: auto; height: clamp(40px, 4.4vw, 50px); color: currentColor; }
+.hold-main { font-size: clamp(21px, 2.4vw, 29px); font-weight: 900; line-height: 1.05; }
 .hold-help { margin-top: 4px; font-size: 14px; font-weight: 800; }
 .hold-button.is-listening { color: white; border-color: #a6f3c9; background: var(--green); box-shadow: 0 7px 0 #13583c; }
 .hold-button.is-listening::after {

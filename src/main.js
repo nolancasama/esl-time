@@ -74,6 +74,9 @@ const game = new TimeGame({
   elements: {
     stage: document.querySelector('#stage'),
     progress: document.querySelector('#game-progress'),
+    scoreCorrect: document.querySelector('#score-correct'),
+    scoreTotal: document.querySelector('#score-total'),
+    scorePop: document.querySelector('#score-pop'),
     feedback: document.querySelector('#feedback'),
     speechControls: document.querySelector('#speech-controls'),
     holdButton: document.querySelector('#hold-to-talk'),

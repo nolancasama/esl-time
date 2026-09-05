@@ -25,31 +25,45 @@
     <div class="game-shell">
       <main id="stage" class="stage" aria-label="Scene"></main>
 
+      <button id="game-back" class="corner-button corner-left" type="button">
+        ← <span class="corner-label">Back</span>
+      </button>
+
+      <div id="game-progress" class="score-badge" aria-live="polite" aria-label="Score">
+        <span class="score-star" aria-hidden="true">★</span>
+        <span id="score-correct" class="score-correct">0</span>
+        <span class="score-sep" aria-hidden="true">/</span>
+        <span id="score-total" class="score-total">12</span>
+        <span id="score-pop" class="score-pop" aria-hidden="true"></span>
+      </div>
+
+      <button id="game-settings" class="corner-button corner-right" type="button" aria-label="Settings">⚙</button>
+
       <div class="answer-dock">
         <div class="feedback-line" id="feedback" aria-live="polite"></div>
-        <div class="dock-row">
-          <div class="dock-side">
-            <button id="game-back" class="top-button" type="button">← Back</button>
-            <div id="game-progress" class="round-progress" aria-live="polite">0 correct · 1 / 12</div>
-          </div>
-          <div class="dock-center">
-            <div id="speech-controls" class="speech-controls">
-              <button id="hold-to-talk" class="hold-button" type="button">
-                <span class="hold-main">🎙 Hold to Talk</span>
+        <div class="dock-center">
+          <div id="speech-controls" class="speech-controls">
+            <button id="hold-to-talk" class="hold-button" type="button">
+              <svg class="mic-icon" viewBox="0 0 24 26" aria-hidden="true" focusable="false">
+                <rect x="8.5" y="1" width="7" height="13" rx="3.5" fill="currentColor"/>
+                <path d="M4.5 11.5a7.5 7.5 0 0 0 15 0" fill="none" stroke="currentColor"
+                      stroke-width="2.2" stroke-linecap="round"/>
+                <path d="M12 19v4.5M7.5 23.5h9" fill="none" stroke="currentColor"
+                      stroke-width="2.2" stroke-linecap="round"/>
+              </svg>
+              <span class="hold-text">
+                <span class="hold-main">Hold to Talk</span>
                 <span class="hold-help">押している間、話そう</span>
-              </button>
+              </span>
+            </button>
+          </div>
+          <form id="typed-form" class="typed-form" hidden>
+            <label for="typed-answer">Type the time you would say</label>
+            <div class="typed-row">
+              <input id="typed-answer" type="text" inputmode="text" autocomplete="off" spellcheck="false">
+              <button class="button button-primary" type="submit">Check</button>
             </div>
-            <form id="typed-form" class="typed-form" hidden>
-              <label for="typed-answer">Type the time you would say</label>
-              <div class="typed-row">
-                <input id="typed-answer" type="text" inputmode="text" autocomplete="off" spellcheck="false">
-                <button class="button button-primary" type="submit">Check</button>
-              </div>
-            </form>
-          </div>
-          <div class="dock-side dock-side-end">
-            <button id="game-settings" class="top-button" type="button" aria-label="Settings">⚙</button>
-          </div>
+          </form>
         </div>
         <p id="fallback-message" class="fallback-message" hidden>
           Speech recognition is unavailable. Type your answer instead.

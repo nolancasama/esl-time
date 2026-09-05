@@ -59,6 +59,10 @@ export class TimeGame {
       firstTry: 0,
       missed: new Set(),
     };
+    // Tracks what the badge is currently showing, so a rising score can be
+    // celebrated exactly once rather than on every progress repaint.
+    this.shownCorrect = 0;
+    this.elements.progress.classList.remove('is-scoring');
     this.active = true;
     this.paused = false;
     this._nextRound();
@@ -80,7 +84,9 @@ export class TimeGame {
     };
     this.progress.recordShown(this.current.time);
     if (this.sceneMount) this.sceneMount.destroy();
-    this.sceneMount = mountScene(this.elements.stage, this.current.scene, this.current.time);
+    this.sceneMount = mountScene(this.elements.stage, this.current.scene, this.current.time, {
+      onFit: (clockRect) => this._placeScoreBadge(clockRect),
+    });
     this.elements.stage.setAttribute('aria-label', `${this.current.scene.name} scene`);
     this.audio.playCharacter(this.current.scene);
     this._setFeedback('');
@@ -156,12 +162,40 @@ export class TimeGame {
     this.advanceTimer = setTimeout(() => this._nextRound(), 1900);
   }
 
+  /**
+   * Keep the score badge centred at the top unless it would sit on the clock.
+   * Two scenes paint their clock dead centre and hard against the top of the
+   * artwork (the station and the grand library), so no amount of panning can
+   * move them clear; the badge steps aside instead. Reading the clock always
+   * outranks the badge holding its position.
+   */
+  _placeScoreBadge(clockRect) {
+    const badge = this.elements.progress;
+    badge.classList.remove('is-shifted-left', 'is-shifted-right');
+    if (!clockRect) return;
+
+    const stageBox = this.elements.stage.getBoundingClientRect();
+    const box = badge.getBoundingClientRect();
+    const left = box.left - stageBox.left;
+    const right = box.right - stageBox.left;
+    const top = box.top - stageBox.top;
+    const bottom = box.bottom - stageBox.top;
+
+    const overlaps = left < clockRect.right && right > clockRect.left
+      && top < clockRect.bottom && bottom > clockRect.top;
+    if (!overlaps) return;
+
+    const roomRight = clockRect.width - clockRect.right;
+    badge.classList.add(roomRight >= clockRect.left ? 'is-shifted-right' : 'is-shifted-left');
+  }
+
   _showMicState(state) {
     const listening = state === MIC.LISTENING;
     this.elements.holdButton.classList.toggle('is-listening', listening);
+    // No emoji: the button carries an SVG mic of its own.
     this.elements.holdButton.querySelector('.hold-main').textContent = listening
       ? 'Listening…'
-      : '🎙 Hold to Talk';
+      : 'Hold to Talk';
   }
 
   _useTypedFallback() {
@@ -210,8 +244,26 @@ export class TimeGame {
 
   _updateProgress() {
     if (!this.session) return;
+    const { scoreCorrect, scoreTotal, scorePop, progress } = this.elements;
     const position = Math.min(this.session.roundIndex + 1, SESSION_ROUNDS);
-    this.elements.progress.textContent = `${this.session.correct} correct · ${position} / ${SESSION_ROUNDS}`;
+    const scored = this.session.correct > this.shownCorrect;
+
+    // Score reads against the fixed session length: "3 / 12" is a stable score,
+    // where a moving denominator would change meaning every round.
+    if (scoreCorrect) scoreCorrect.textContent = String(this.session.correct);
+    if (scoreTotal) scoreTotal.textContent = String(SESSION_ROUNDS);
+    progress.setAttribute('aria-label',
+      `Score ${this.session.correct} of ${SESSION_ROUNDS}, round ${position}`);
+
+    if (scored) {
+      if (scorePop) scorePop.textContent = '+1';
+      // Restart the animation even when it is already running.
+      progress.classList.remove('is-scoring');
+      void progress.offsetWidth;
+      progress.classList.add('is-scoring');
+      this.audio.playFeedback('score');
+    }
+    this.shownCorrect = this.session.correct;
   }
 
   pause() {
