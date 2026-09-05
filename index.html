@@ -7,8 +7,8 @@
   <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-  <section id="screen-title" class="screen title-screen is-visible" aria-labelledby="title-heading">
-    <div class="title-glow" aria-hidden="true"></div>
+  <section id="screen-title" class="screen title-screen soft-canvas is-visible" aria-labelledby="title-heading">
+    <div class="canvas-glow" aria-hidden="true"></div>
     <div class="title-plate">
       <div class="title-lockup">
         <h1 id="title-heading">What <span class="title-accent">Time</span> Is It?</h1>
@@ -87,34 +87,43 @@
     </div>
   </section>
 
-  <section id="screen-summary" class="screen summary-screen" aria-labelledby="summary-title">
-    <p class="eyebrow" lang="ja">ゲームクリア</p>
-    <h2 id="summary-title" lang="ja">よくできました！</h2>
-    <p id="summary-score" class="summary-score">0:00.0</p>
-    <p id="summary-new-best" class="summary-new-best" hidden lang="ja">しんきろく！</p>
-    <div class="summary-stats">
-      <div class="summary-stat"><strong id="summary-correct">0</strong><span lang="ja">せいかい</span></div>
-      <div class="summary-stat"><strong id="summary-first">0</strong><span lang="ja">いっぱつせいかい</span></div>
-    </div>
-    <div id="summary-timed-stats" class="summary-stats" hidden>
-      <div class="summary-stat"><strong id="summary-base">0:00.0</strong><span lang="ja">タイム</span></div>
-      <div class="summary-stat"><strong id="summary-penalty">+0 sec</strong><span lang="ja">ミス</span></div>
-      <div class="summary-stat"><strong id="summary-best">—</strong><span lang="ja">ベスト</span></div>
-    </div>
-    <div class="practice-panel">
-      <h3 lang="ja">れんしゅうする じかん</h3>
-      <div id="practice-times" class="practice-times"></div>
-    </div>
-    <div class="challenge-offer">
-      <button id="speed-challenge" class="button challenge-button" type="button">
-        <span class="challenge-jp" lang="ja">スピードチャレンジ</span>
-        <span class="challenge-en" lang="ja">じゆうさんか · 60びょうの デジタルとけい</span>
-      </button>
-    </div>
-    <div class="button-row">
-      <button id="practice-again" class="button" type="button"><span lang="ja">にがてを れんしゅう</span></button>
-      <button id="play-again" class="button" type="button"><span lang="ja">もう一回</span></button>
-      <button id="change-level" class="button button-quiet" type="button"><span lang="ja">おわる</span></button>
+  <section id="screen-summary" class="screen result-screen soft-canvas" aria-labelledby="summary-title">
+    <div class="canvas-glow" aria-hidden="true"></div>
+    <div class="result-plate">
+      <div class="result-lockup">
+        <p class="eyebrow" lang="ja">ゲームクリア</p>
+        <h2 id="summary-title" lang="ja">よくできました！</h2>
+      </div>
+
+      <div class="result-score">
+        <p class="result-count">
+          <span id="summary-correct">0</span><span class="result-of">/</span><span id="summary-total">12</span>
+        </p>
+        <p class="result-count-label" lang="ja">よめた とけい</p>
+        <p class="result-secondary" lang="ja">いっぱつせいかい <strong id="summary-first">0 / 12</strong></p>
+      </div>
+
+      <div class="bonus-card">
+        <p class="bonus-eyebrow" lang="ja">ボーナス · じゆうさんか</p>
+        <p class="bonus-title" lang="ja">スピードチャレンジ</p>
+        <p class="bonus-sub" lang="ja">60びょうで デジタルとけいを よもう</p>
+        <button id="speed-challenge" class="bonus-button" type="button">
+          <span lang="ja">スタート</span>
+        </button>
+      </div>
+
+      <div id="practice-section" class="practice-row" hidden>
+        <p class="practice-heading" lang="ja">もういちど れんしゅう する？</p>
+        <div id="practice-times" class="practice-times"></div>
+        <button id="practice-again" class="button button-ghost button-small" type="button">
+          <span lang="ja">にがてを れんしゅう</span>
+        </button>
+      </div>
+
+      <div class="button-row result-actions">
+        <button id="play-again" class="button button-ghost" type="button"><span lang="ja">もう一回</span></button>
+        <button id="change-level" class="button button-ghost" type="button"><span lang="ja">おわる</span></button>
+      </div>
     </div>
   </section>
 
@@ -173,7 +182,8 @@
     </div>
   </section>
 
-  <section id="screen-speed-result" class="screen summary-screen" aria-label="Speed challenge result">
+  <section id="screen-speed-result" class="screen summary-screen soft-canvas" aria-label="Speed challenge result">
+    <div class="canvas-glow" aria-hidden="true"></div>
     <p class="eyebrow" lang="ja">タイムアップ！</p>
     <p id="speed-result-count" class="speed-result-count">0</p>
     <p class="speed-result-label" lang="ja">せいかい</p>

@@ -420,3 +420,35 @@ silently kill the button's pressed state — the same bug the replay button hit.
 `analogRenderer` in `clock.js` is now unused by the app but is KEPT: it is the
 clock registry's only other registered type and the reference for adding new
 clock styles, which SPEC documents as the extension point.
+
+## 2026-09-05 — The completion screen is a chapter end, not a dashboard
+
+The screen after the twelve analog scenes was a stack of equally weighted stat
+cards. It now says three things in order: you finished it, here is the one
+result that matters, and there is an optional bonus round.
+
+- `12 / 12` is the hero, with 「よめた とけい」 beneath it. The denominator is
+  set small, light and raised: it is a suffix, not a second number.
+- First-try accuracy stays, quietly, as one line. It is real teaching feedback;
+  it is not a headline.
+- The analog timed result — total time, penalties, best time, NEW BEST — is
+  gone from the screen entirely. The analog round is the unhurried half of the
+  game and keeps no visible clock, so finishing IS the reward. The timing
+  architecture behind `ENABLE_SCORING` is still in `game.js`, but it no longer
+  has a result screen; re-enabling it needs new markup, and the flag's comment
+  says so rather than leaving a trap.
+- The speed challenge is a raised card — the only lifted surface on the screen —
+  labelled 「ボーナス · じゆうさんか」 so the invitation is obvious and plainly
+  optional. Everything else is an outline button.
+- The practice row is hidden outright when there is nothing to practise, rather
+  than showing an empty panel. It draws on this session's revealed times, and
+  falls back to the saved trouble spots so a child with older misses can still
+  reach practice.
+
+The title screen's background, display face and button language were factored
+into a shared `.soft-canvas`, now used by the title, the completion screen and
+the speed result, so the three calm screens read as one product.
+
+Implementation note: `justify-content: safe center` on that canvas. Plain
+`center` overflows in BOTH directions when the content is taller than the
+screen, which put the top of the completion screen out of reach at 460 px tall.

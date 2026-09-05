@@ -29,8 +29,14 @@ frozen matcher.
 - Each scene opens with a prerecorded "What time is it?" in a voice matched to
   its character; the answer control is hidden until that recording ends, with a
   quiet replay button beside it.
+- The completion screen after the twelve scenes leads with `12 / 12`, keeps
+  first-try accuracy as one quiet line, offers the speed challenge as a raised
+  optional card, and hides the practice row when there is nothing to practise.
 - Timed scoring (stopwatch, penalties, best times) is implemented but switched
-  off behind `ENABLE_SCORING` in src/game.js.
+  off behind `ENABLE_SCORING` in src/game.js. Its RESULT UI was retired with
+  the completion-screen redesign, so re-enabling the flag needs new markup.
+- Title, completion and speed-result screens share one `.soft-canvas`
+  background and the `--font-display` type stack.
 - Press-and-hold Web Speech recognition with pointer capture, cancellation
   paths, keyboard parity, a five-second limit, and typed fallback.
 - Correct answers are accepted mid-hold: interim hypotheses are judged live

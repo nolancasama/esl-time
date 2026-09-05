@@ -406,6 +406,15 @@ difficulty never starts a round; `もどる` returns to the title, top and botto
 - Large touch targets throughout, no hover-only affordances, no tiny buttons.
   Layout holds from 1024x600 (Chromebook) up to 1920x1080 and in portrait.
 
+**Completion screen.** Three beats in order: 「ゲームクリア / よくできました！」,
+then `12 / 12` with 「よめた とけい」 as the hero result, then the optional
+speed challenge as the screen's one raised card. First-try accuracy is one
+quiet line. NO timed result appears here — no run time, no penalties, no best
+time, no NEW BEST — because the analog round keeps no visible clock and
+finishing is the reward. The practice row is hidden entirely when there is
+nothing to practise, and never shown empty. Bottom actions are 「もう一回」 and
+「おわる」 as outline buttons, so nothing competes with the bonus card.
+
 ---
 
 ## 9. Settings (`localStorage`, one key `eslTime.v1`)

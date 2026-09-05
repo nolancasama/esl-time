@@ -1,6 +1,6 @@
-import { allDifficulties, levelIdForDifficulty } from './data/times.js';
+import { allDifficulties, levelIdForDifficulty, timeKey } from './data/times.js';
 import { Progress } from './progress.js';
-import { TimeGame, formatRunTime, ENABLE_SCORING } from './game.js';
+import { TimeGame, ENABLE_SCORING } from './game.js';
 import { SpeedRound } from './speed-round.js';
 
 const progress = new Progress();
@@ -48,40 +48,62 @@ function buildDifficultyChoices() {
   }
 }
 
+const REDUCED_MOTION = globalThis.matchMedia
+  ? globalThis.matchMedia('(prefers-reduced-motion: reduce)')
+  : { matches: false };
+
+/**
+ * Run a number up to its final value. Short on purpose: this is a beat of
+ * arrival, not a scoreboard tally, so it lands inside half a second and skips
+ * entirely when the browser asks for reduced motion.
+ */
+function countUp(element, total, duration = 460) {
+  if (!element) return;
+  if (REDUCED_MOTION.matches || total <= 0) {
+    element.textContent = String(total);
+    return;
+  }
+  const startedAt = performance.now();
+  const step = (now) => {
+    const progressed = Math.min(1, (now - startedAt) / duration);
+    // Ease out, so the count arrives rather than stopping dead.
+    element.textContent = String(Math.round(total * (1 - (1 - progressed) ** 3)));
+    if (progressed < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+/**
+ * The completion screen says three things, in this order: you finished it,
+ * here is the one result that matters, and there is an optional bonus round.
+ * It is deliberately not a dashboard - the analog game keeps no timer, and
+ * finishing IS the reward.
+ */
 function renderSummary(summary) {
   lastSummary = summary;
-  const timed = summary.scoringEnabled;
-  // With scoring off the result is just how the round went, not a race result.
-  document.querySelector('#summary-score').hidden = !timed;
-  document.querySelector('#summary-timed-stats').hidden = !timed;
-  document.querySelector('#summary-new-best').hidden = !timed || !summary.isNewBest;
-  document.querySelector('#summary-correct').textContent = `${summary.correct} / ${summary.rounds}`;
+  const correct = document.querySelector('#summary-correct');
+  correct.textContent = '0';
+  document.querySelector('#summary-total').textContent = String(summary.rounds);
   document.querySelector('#summary-first').textContent = `${summary.firstTry} / ${summary.rounds}`;
-  if (timed) {
-    document.querySelector('#summary-score').textContent = formatRunTime(summary.finalScoreMs);
-    document.querySelector('#summary-base').textContent = formatRunTime(summary.elapsedMs);
-    document.querySelector('#summary-penalty').textContent = `+${Math.round(summary.penaltyMs / 1000)} sec`;
-    document.querySelector('#summary-best').textContent = summary.bestMs === null
-      ? '—'
-      : formatRunTime(summary.bestMs);
-  }
+
+  // Practice is offered when there is something real to practise: this
+  // session's revealed times, or failing that the saved trouble spots. With
+  // neither, the section is hidden rather than shown empty.
+  const keys = summary.missed.length
+    ? summary.missed
+    : progress.strugglingTimes(6).map(timeKey);
   const practiceTimes = document.querySelector('#practice-times');
   practiceTimes.replaceChildren();
-  if (!summary.missed.length) {
-    const empty = document.createElement('span');
-    empty.className = 'empty-practice';
-    empty.lang = 'ja';
-    empty.textContent = 'ぜんぶ じぶんで こたえられました！';
-    practiceTimes.append(empty);
-  } else {
-    for (const key of summary.missed) {
-      const chip = document.createElement('span');
-      chip.className = 'time-chip';
-      chip.textContent = key;
-      practiceTimes.append(chip);
-    }
+  for (const key of keys) {
+    const chip = document.createElement('span');
+    chip.className = 'time-chip';
+    chip.textContent = key;
+    practiceTimes.append(chip);
   }
+  document.querySelector('#practice-section').hidden = keys.length === 0;
+
   showScreen('screen-summary');
+  countUp(correct, summary.correct);
 }
 
 const game = new TimeGame({

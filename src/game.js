@@ -8,10 +8,13 @@ import { AudioManager } from './audio.js';
 
 export const SESSION_ROUNDS = 12;
 
-// Timed scoring is built but switched off: the game currently focuses on the
-// question-and-answer exchange without any speed pressure. Turning this back on
-// restores the stopwatch, penalties, best times and the timed result screen;
-// plain round progress ("3 / 12") is unaffected either way.
+// Timed scoring is built but switched off: the analog round is deliberately the
+// unhurried half of the game, and the speed challenge is where time pressure
+// lives now. This still drives the in-play stopwatch chip, the penalties and the
+// saved best times, but the completion screen no longer HAS a timed result to
+// show - that UI was retired when the screen was redesigned around finishing
+// rather than racing (see DESIGN_DECISIONS.md, 2026-09-05). Turning this back on
+// needs new result markup; plain round progress ("3 / 12") is unaffected.
 export const ENABLE_SCORING = false;
 
 // Time penalties, kept here so they are tuned in one place. A run is scored as

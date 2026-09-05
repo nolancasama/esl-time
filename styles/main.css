@@ -49,20 +49,33 @@ button { color: inherit; cursor: pointer; }
    gone too: it competed with the real clocks the game is actually about, and
    made the screen read as a worksheet header. Typography, spacing and one slow
    tonal drift carry it instead. */
-#screen-title {
+/* Shared by the title, the completion screen and the speed result, so the
+   three calm screens read as one product rather than three pages. */
+.soft-canvas {
   align-items: center;
   justify-content: center;
-  padding: 28px;
+  /* When the content is taller than the screen, plain `center` overflows in
+     BOTH directions and the top becomes unreachable. `safe` keeps it centred
+     while it fits and falls back to the start edge when it does not. */
+  justify-content: safe center;
+  padding: clamp(18px, 3.4vh, 30px) 24px;
   background:
     radial-gradient(72% 54% at 50% -12%, #ffffff 0, rgba(255, 255, 255, 0) 64%),
     linear-gradient(168deg, #f7fbfe 0%, #e4eef8 44%, #cfe0ef 100%);
 }
+/* The glow is a positioned element, so in-flow siblings would paint under it.
+   Lifting the content is cheaper and safer than a negative z-index, which
+   would sit behind the screen's own background wherever `position: fixed`
+   establishes a stacking context. */
+.soft-canvas > :not(.canvas-glow) { position: relative; z-index: 1; }
+
+#screen-title { padding: 28px; }
 
 /* Two oversized tonal fields drifting slowly against each other. Abstract on
    purpose: anything ring-shaped here would read as yet another clock. The
    wrapper clips its own child, so the screen keeps its scroll behaviour. */
-.title-glow { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.title-glow::before {
+.canvas-glow { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.canvas-glow::before {
   content: "";
   position: absolute;
   inset: -20%;
@@ -72,9 +85,9 @@ button { color: inherit; cursor: pointer; }
     radial-gradient(32% 36% at 70% 10%, rgba(146, 188, 234, .26) 0, rgba(146, 188, 234, 0) 70%),
     /* One barely-there warm field: an all-cool screen tips into stock SaaS. */
     radial-gradient(34% 30% at 12% 88%, rgba(255, 214, 160, .20) 0, rgba(255, 214, 160, 0) 72%);
-  animation: title-drift 26s ease-in-out infinite alternate;
+  animation: canvas-drift 26s ease-in-out infinite alternate;
 }
-@keyframes title-drift {
+@keyframes canvas-drift {
   from { transform: translate3d(-1.4%, -1.1%, 0) scale(1); }
   to { transform: translate3d(1.6%, 1.4%, 0) scale(1.06); }
 }
@@ -169,11 +182,11 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 /* A short staggered settle on entry, finished inside 600ms. `backwards`, not
    `both`: a forwards fill would keep asserting transform: none afterwards and
    would silently kill the Start button's pressed state. */
-.title-plate h1 { animation: title-rise .42s cubic-bezier(.22, .7, .3, 1) backwards; }
-.title-jp { animation: title-rise .42s cubic-bezier(.22, .7, .3, 1) .08s backwards; }
-.start-button { animation: title-rise .42s cubic-bezier(.22, .7, .3, 1) .17s backwards; }
-.options-button { animation: title-rise .42s cubic-bezier(.22, .7, .3, 1) .26s backwards; }
-@keyframes title-rise { from { opacity: 0; transform: translateY(11px); } }
+.title-plate h1 { animation: soft-rise .42s cubic-bezier(.22, .7, .3, 1) backwards; }
+.title-jp { animation: soft-rise .42s cubic-bezier(.22, .7, .3, 1) .08s backwards; }
+.start-button { animation: soft-rise .42s cubic-bezier(.22, .7, .3, 1) .17s backwards; }
+.options-button { animation: soft-rise .42s cubic-bezier(.22, .7, .3, 1) .26s backwards; }
+@keyframes soft-rise { from { opacity: 0; transform: translateY(11px); } }
 
 .button:focus-visible, .top-button:focus-visible, .start-button:focus-visible,
 .options-button:focus-visible, .difficulty-choice:focus-visible,
@@ -475,28 +488,137 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 .fallback-message { position: absolute; bottom: 8px; right: 14px; max-width: 270px; margin: 0; color: #c4d0dc; font-size: 11px; text-align: right; }
 .transcript { position: absolute; bottom: 8px; left: 14px; max-width: 300px; margin: 0; color: #b5c4d4; font-size: 12px; }
 
-.summary-screen { align-items: center; justify-content: center; gap: 14px; padding: 28px; background: radial-gradient(circle at 50% 10%, #fff 0, #eaf3f8 60%, #dce8f0 100%); }
-.summary-screen h2 { font-size: clamp(38px, 6vw, 64px); }
+/* ---------------------------------------------------------------------------
+   Analog completion screen.
+
+   A chapter-complete moment, not a dashboard. It says three things in order:
+   you finished it, here is the one result that matters, and there is an
+   optional bonus round. The analog game keeps no timer, so there is nothing
+   here about seconds, penalties or best times - finishing IS the reward.
+   --------------------------------------------------------------------------- */
+
+.result-plate {
+  display: grid;
+  justify-items: center;
+  gap: clamp(17px, 3vh, 30px);
+  width: min(560px, 100%);
+  text-align: center;
+}
+
+.result-lockup { display: grid; justify-items: center; gap: 6px; }
+.result-screen h2 {
+  color: var(--navy);
+  font-family: var(--font-display);
+  font-size: clamp(31px, 4.6vw, 52px);
+  font-weight: 800;
+  letter-spacing: -.015em;
+}
+
+.result-score { display: grid; justify-items: center; gap: 3px; }
+/* The completion count is the hero. The denominator is deliberately quieter:
+   what matters is the number the child earned, not the arithmetic. */
+.result-count {
+  margin: 0;
+  color: var(--navy);
+  font-family: var(--font-display);
+  font-size: clamp(62px, 10.5vw, 118px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.035em;
+  line-height: .94;
+}
+/* "/ 12" is a suffix, not a second number: smaller, lighter and raised, so the
+   count the child earned is unmistakably the thing on the screen. */
+.result-of, #summary-total {
+  color: #9db2c7;
+  font-size: .46em;
+  font-weight: 700;
+  vertical-align: .38em;
+}
+.result-of { margin: 0 .05em 0 .12em; }
+.result-count-label {
+  margin: 0;
+  color: #7d92aa;
+  font-size: clamp(13px, 1.6vw, 16px);
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+.result-secondary {
+  margin: 9px 0 0;
+  color: #6b7f96;
+  font-size: clamp(14px, 1.7vw, 17px);
+  font-weight: 700;
+}
+.result-secondary strong { color: var(--navy); font-variant-numeric: tabular-nums; }
+
+/* The bonus is the one raised surface on the screen, so the invitation is
+   obvious without ever looking compulsory. */
+.bonus-card {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  width: min(430px, 100%);
+  padding: clamp(17px, 2.4vh, 24px) clamp(20px, 4vw, 32px);
+  border-radius: 22px;
+  background: linear-gradient(168deg, rgba(255, 255, 255, .94) 0, rgba(238, 246, 253, .88) 100%);
+  box-shadow: 0 14px 32px rgba(30, 70, 120, .13), inset 0 0 0 1px rgba(120, 160, 200, .24);
+}
+.bonus-eyebrow { margin: 0; color: #8398b0; font-size: clamp(11px, 1.2vw, 12px); font-weight: 900; letter-spacing: .08em; }
+.bonus-title {
+  margin: 0;
+  color: var(--navy);
+  font-family: var(--font-display);
+  font-size: clamp(21px, 2.7vw, 28px);
+  font-weight: 800;
+  letter-spacing: .02em;
+}
+.bonus-sub { margin: 0 0 9px; color: #6b7f96; font-size: clamp(12px, 1.4vw, 14px); font-weight: 700; }
+.bonus-button {
+  min-width: 200px;
+  min-height: 54px;
+  padding: 12px 30px;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(180deg, #3d8ae4 0, #2569bf 100%);
+  box-shadow: 0 8px 18px rgba(28, 78, 138, .28), inset 0 1px 0 rgba(255, 255, 255, .28);
+  font-size: clamp(17px, 2vw, 20px);
+  font-weight: 800;
+  letter-spacing: .05em;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.bonus-button:active {
+  transform: translateY(1px) scale(.99);
+  box-shadow: 0 4px 10px rgba(28, 78, 138, .26), inset 0 1px 0 rgba(255, 255, 255, .22);
+}
+
+/* Compact by design: practice is a footnote to the result, not a panel. */
+.practice-row { display: grid; justify-items: center; gap: 8px; }
+.practice-heading { margin: 0; color: #6b7f96; font-size: clamp(13px, 1.5vw, 15px); font-weight: 800; }
+
+.button-ghost { color: #5d7590; border: 1.5px solid #c3d2e0; background: transparent; }
+.button-ghost:hover { color: var(--navy); border-color: #a5bbd0; background: rgba(255, 255, 255, .62); }
+.button-small { min-height: 44px; padding: 9px 20px; font-size: clamp(13px, 1.5vw, 15px); }
+
+/* Entry: eyebrow and heading, then the count, then the bonus, then the rest.
+   Finished inside ~720ms, and `backwards` so no fill is left asserting a
+   transform over a button's pressed state. */
+.result-lockup { animation: soft-rise .42s cubic-bezier(.22, .7, .3, 1) backwards; }
+.result-score { animation: soft-rise .42s cubic-bezier(.22, .7, .3, 1) .07s backwards; }
+.bonus-card { animation: soft-rise .46s cubic-bezier(.22, .7, .3, 1) .16s backwards; }
+.practice-row { animation: soft-rise .42s cubic-bezier(.22, .7, .3, 1) .24s backwards; }
+.result-actions { animation: soft-rise .42s cubic-bezier(.22, .7, .3, 1) .30s backwards; }
+
+/* Speed result only: the analog completion screen has its own composition. */
+.summary-screen { gap: 14px; }
 .summary-stats { display: grid; grid-template-columns: repeat(2, minmax(140px, 220px)); gap: 14px; }
-.summary-stat { display: flex; flex-direction: column; align-items: center; padding: 18px; border: 2px solid #cad8e3; border-radius: var(--radius); background: white; }
+.summary-stat { display: flex; flex-direction: column; align-items: center; padding: 18px; border-radius: var(--radius); background: rgba(255, 255, 255, .82); box-shadow: inset 0 0 0 1px rgba(120, 160, 200, .24); }
 .summary-stat strong { color: var(--blue); font-size: clamp(30px, 3.8vw, 48px); line-height: 1; white-space: nowrap; }
 .summary-stat span { margin-top: 5px; color: var(--muted); font-weight: 800; }
-.practice-panel { width: min(650px, 100%); padding: 16px 20px; border-radius: var(--radius); background: white; text-align: center; }
-.practice-panel h3 { margin: 0 0 11px; }
-.practice-times { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; min-height: 30px; }
-.time-chip { padding: 7px 13px; border-radius: 999px; color: #70400e; background: #ffebc8; font-weight: 800; }
-.empty-practice { color: var(--muted); font-weight: 700; }
+.practice-times { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; }
+.time-chip { padding: 6px 12px; border-radius: 999px; color: #70400e; background: #ffe6bd; font-size: clamp(13px, 1.5vw, 15px); font-weight: 800; }
 
 .settings-screen { align-items: center; padding: 26px 18px; background: #eaf1f6; }
-/* The run time is the headline result; everything else supports it. */
-.summary-score {
-  margin: 6px 0 0;
-  color: var(--blue);
-  font-size: clamp(46px, 9vw, 88px);
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
 .summary-new-best {
   margin: 8px 0 0;
   padding: 5px 16px;
@@ -562,6 +684,22 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 
 @media (max-height: 700px) and (orientation: landscape) {
   #screen-title { padding: 16px 24px; }
+  /* Short classroom landscape: everything compresses, and the optional
+     practice row gives up the most so the result never has to. */
+  .soft-canvas { padding-block: 12px; }
+  .result-plate { gap: clamp(10px, 1.9vh, 17px); }
+  .result-lockup { gap: 3px; }
+  .result-screen h2 { font-size: clamp(26px, 3.6vw, 40px); }
+  .result-count { font-size: clamp(46px, 7vw, 74px); }
+  .result-secondary { margin-top: 4px; }
+  .bonus-card { gap: 3px; padding-block: 12px; }
+  .bonus-sub { margin-bottom: 6px; }
+  .bonus-button { min-height: 44px; padding-block: 8px; }
+  .practice-row { gap: 4px; }
+  .practice-heading { font-size: 12px; }
+  .time-chip { padding: 4px 10px; font-size: 12px; }
+  .button-small { min-height: 38px; padding-block: 7px; }
+  .result-actions .button { min-height: 44px; padding-block: 9px; }
   .title-plate { gap: clamp(20px, 4.6vh, 40px); margin-bottom: clamp(6px, 3vh, 24px); }
   .title-plate h1 { font-size: clamp(30px, 4.4vw, 50px); }
   .start-button { min-height: 72px; }
@@ -742,9 +880,12 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 .speed-result-count {
   margin: 0;
   color: var(--blue);
-  font-size: clamp(90px, 17vw, 190px);
-  font-weight: 900;
-  line-height: .9;
+  font-family: var(--font-display);
+  font-size: clamp(84px, 15vw, 170px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.035em;
+  line-height: .92;
 }
 .speed-result-label {
   margin: 0;
@@ -754,8 +895,10 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
   letter-spacing: .18em;
   text-transform: uppercase;
 }
-.speed-result-stats { grid-template-columns: repeat(3, minmax(102px, 168px)); }
+.speed-result-stats { grid-template-columns: repeat(3, minmax(112px, 190px)); }
 .speed-result-stats .summary-stat strong { font-size: clamp(28px, 3.6vw, 42px); }
+/* 「さいこう れんぞく」 wrapped and knocked the three cards out of alignment. */
+.speed-result-stats .summary-stat span { font-size: 13px; white-space: nowrap; }
 
 /* The challenge is an offer, not the next step: it is the brightest thing on
    the completion screen, and every other way out is still one tap away. */
