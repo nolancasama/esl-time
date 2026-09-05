@@ -14,9 +14,12 @@ const CLOCK_MARGIN = 1.2;
  * keep the clock, plus its margin, inside the window. Returns a source-image
  * coordinate so the image and the overlay can be driven from the same rect.
  */
-function windowOrigin(imageSpan, visibleSpan, centre, margin) {
+function windowOrigin(imageSpan, visibleSpan, centre, margin, prefer = null) {
   const slack = Math.max(0, imageSpan - visibleSpan);
-  let origin = slack / 2;
+  // Default framing is the artwork's own centre; `prefer` nudges the window
+  // toward a second point of interest (the speaking character) but can never
+  // override the clock, whose range is applied after it.
+  let origin = prefer === null ? slack / 2 : prefer - visibleSpan / 2;
   const lowest = centre + margin - visibleSpan;
   const highest = centre - margin;
   if (lowest <= highest) origin = Math.min(Math.max(origin, lowest), highest);
@@ -69,8 +72,21 @@ export function mountScene(stage, scene, time, { onFit } = {}) {
     const visibleHeight = Math.min(SCENE_IMAGE.height, box.height / scale);
     const margin = Math.max(scene.clock.rx, scene.clock.ry) * CLOCK_MARGIN;
 
-    const x = windowOrigin(SCENE_IMAGE.width, visibleWidth, scene.clock.cx, margin);
-    const y = windowOrigin(SCENE_IMAGE.height, visibleHeight, scene.clock.cy, margin);
+    let x = windowOrigin(SCENE_IMAGE.width, visibleWidth, scene.clock.cx, margin);
+    let y = windowOrigin(SCENE_IMAGE.height, visibleHeight, scene.clock.cy, margin);
+
+    // Second pass: if centre framing left the speaking character out of shot,
+    // re-aim the window at them. The clock's range is still applied inside
+    // windowOrigin, so this can only ever use slack the clock did not need.
+    if (scene.character) {
+      const visible = (origin, span, at) => at >= origin && at <= origin + span;
+      if (!visible(x, visibleWidth, scene.character.x)) {
+        x = windowOrigin(SCENE_IMAGE.width, visibleWidth, scene.clock.cx, margin, scene.character.x);
+      }
+      if (!visible(y, visibleHeight, scene.character.y)) {
+        y = windowOrigin(SCENE_IMAGE.height, visibleHeight, scene.clock.cy, margin, scene.character.y);
+      }
+    }
 
     const slackX = SCENE_IMAGE.width - visibleWidth;
     const slackY = SCENE_IMAGE.height - visibleHeight;
@@ -79,12 +95,24 @@ export function mountScene(stage, scene, time, { onFit } = {}) {
 
     if (onFit) {
       const pixels = box.width / visibleWidth;
+      // The character anchor is mapped through the SAME crop as the clock, so
+      // a control pinned to it tracks the artwork instead of the viewport.
+      const character = scene.character
+        ? {
+          x: (scene.character.x - x) * pixels,
+          y: (scene.character.y - y) * pixels,
+          onScreen: scene.character.x >= x && scene.character.x <= x + visibleWidth
+            && scene.character.y >= y && scene.character.y <= y + visibleHeight,
+        }
+        : null;
       onFit({
         left: (scene.clock.cx - scene.clock.rx - x) * pixels,
         right: (scene.clock.cx + scene.clock.rx - x) * pixels,
         top: (scene.clock.cy - scene.clock.ry - y) * pixels,
         bottom: (scene.clock.cy + scene.clock.ry - y) * pixels,
         width: box.width,
+        height: box.height,
+        character,
       });
     }
   };

@@ -159,7 +159,10 @@ export class TimeGame {
     this.progress.recordShown(this.current.time);
     if (this.sceneMount) this.sceneMount.destroy();
     this.sceneMount = mountScene(this.elements.stage, this.current.scene, this.current.time, {
-      onFit: (clockRect) => this._placeScoreBadge(clockRect),
+      onFit: (fit) => {
+        this._placeScoreBadge(fit);
+        this._placeReplayButton(fit);
+      },
     });
     this.elements.stage.setAttribute('aria-label', `${this.current.scene.name} scene`);
     this._setFeedback('');
@@ -352,6 +355,41 @@ export class TimeGame {
 
     const roomRight = clockRect.width - clockRect.right;
     badge.classList.add(roomRight >= clockRect.left ? 'is-shifted-right' : 'is-shifted-left');
+  }
+
+  /**
+   * Pin the replay control beside the speaking character's mouth. Full-bleed
+   * framing can pan a character out of shot, and the dock covers the lower
+   * strip, so anything that would land off-screen or underneath the controls
+   * falls back to a fixed spot above the dock.
+   */
+  _placeReplayButton(fit) {
+    const button = this.elements.replayQuestion;
+    if (!button) return;
+    this.replayAnchor = fit || null;
+
+    const point = fit && fit.character;
+    const margin = 34;
+    const dockTop = fit ? fit.height - 150 : 0;
+    // The anchor sits BESIDE the mouth, so it can fall just outside the crop
+    // while the character is still plainly on screen. Only a character panned
+    // well out of shot falls back to the dock.
+    const NEAR = 140;
+    const near = point && point.x > -NEAR && point.x < fit.width + NEAR
+      && point.y > -NEAR && point.y < fit.height + NEAR;
+
+    button.classList.toggle('is-docked', !near);
+    if (near) {
+      // Clamp rather than dock: when the anchor is only just past an edge the
+      // character is still right there, so staying beside them beats jumping to
+      // a corner. Docking is reserved for a character panned out of shot.
+      const clamp = (value, low, high) => Math.min(Math.max(value, low), high);
+      button.style.left = `${clamp(point.x, margin, fit.width - margin)}px`;
+      button.style.top = `${clamp(point.y, margin, Math.max(margin, dockTop))}px`;
+    } else {
+      button.style.left = '';
+      button.style.top = '';
+    }
   }
 
   _showMicState(state) {

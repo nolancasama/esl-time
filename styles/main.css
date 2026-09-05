@@ -306,23 +306,45 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 
 .dock-center { display: flex; justify-content: center; width: 100%; }
 
-/* Secondary to Hold to Talk: small, quiet, and only offered once the question
-   has actually been asked. */
+/* Pinned beside the speaking character's mouth so it reads as "they said it,
+   tap to hear it again", rather than as a generic toolbar button. Positioned
+   in the scene's own coordinate space by _placeReplayButton. */
 .replay-button {
+  position: absolute;
+  z-index: 4;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   padding: 0;
-  color: white;
-  border: 2px solid rgba(255,255,255,.28);
+  color: #12222e;
+  border: 3px solid #fff;
   border-radius: 999px;
-  background: rgba(13, 23, 32, .5);
-  backdrop-filter: blur(6px);
-  font-size: 19px;
+  background: #ffd98a;
+  box-shadow: 0 5px 14px rgba(10, 22, 32, .42);
+  font-size: 20px;
   line-height: 1;
+  transform: translate(-50%, -50%);
 }
-.replay-button:active { transform: scale(.94); }
+.replay-button:active { transform: translate(-50%, -50%) scale(.94); }
+
+/* The entrance animation is scoped to the anchored state: with `both` fill it
+   keeps its own transform afterwards, which would override the docked rule. */
+.replay-button:not(.is-docked) { animation: replay-pop .35s ease both; }
+@keyframes replay-pop {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Fallback for when the character is panned out of frame entirely. */
+.replay-button.is-docked {
+  left: max(16px, env(safe-area-inset-left));
+  bottom: 168px;
+  top: auto;
+  transform: none;
+  animation: none;
+}
+.replay-button.is-docked:active { transform: scale(.94); }
 
 .feedback-line { min-height: 26px; color: white; font-size: clamp(17px, 2.2vw, 25px); font-weight: 800; text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.7); }
 .feedback-line.is-correct { color: #7af0b4; }

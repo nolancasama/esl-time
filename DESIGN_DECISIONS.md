@@ -131,8 +131,18 @@ because no scene shows an adult man in the foreground; a wrong-sounding voice
 would be worse than a repeated one. With one young voice per gender available,
 five scenes share each — more variety needs more recordings, not remapping.
 
-A quiet replay button appears with the control and re-asks the question. It
-re-hides the control while playing and never counts as an attempt.
+The replay button is pinned beside the speaking character's mouth rather than
+sitting in the dock, so it reads as "they said it, tap to hear it again". Each
+scene carries a `character` anchor in source-image pixels, mapped through the
+same crop as the clock hands, so it tracks the artwork at any size. It re-hides
+the answer control while playing and never counts as an attempt.
+
+Framing keeps the CLOCK as the hard constraint and only then re-aims at the
+character, so the anchor can be cropped out. In landscape all twelve scenes
+anchor beside the face; in portrait the clock constraint consumes the available
+width and most characters are cropped away entirely, so the button falls back to
+a fixed spot above the dock. Anchors just off the edge are clamped back into
+frame instead of docking, since the character is still visible there.
 
 ## 2026-09-05 — Timed scoring is switched off behind a flag
 
