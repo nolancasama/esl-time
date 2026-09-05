@@ -23,21 +23,18 @@
 
   <section id="screen-game" class="screen" aria-label="Telling time game">
     <div class="game-shell">
-      <header class="top-bar">
-        <button id="game-back" class="top-button" type="button">← Back</button>
-        <div id="game-progress" class="round-progress" aria-live="polite">0 correct · 1 / 12</div>
-        <button id="game-settings" class="top-button" type="button" aria-label="Settings">⚙ Settings</button>
-      </header>
-
-      <main id="stage" class="stage" aria-label="Placeholder scene"></main>
+      <main id="stage" class="stage" aria-label="Scene"></main>
 
       <div class="answer-dock">
+        <div id="game-progress" class="round-progress" aria-live="polite">0 correct · 1 / 12</div>
         <div class="feedback-line" id="feedback" aria-live="polite"></div>
         <div id="speech-controls" class="speech-controls">
+          <button id="game-back" class="top-button" type="button">← Back</button>
           <button id="hold-to-talk" class="hold-button" type="button">
             <span class="hold-main">🎙 Hold to Talk</span>
             <span class="hold-help">押している間、話そう</span>
           </button>
+          <button id="game-settings" class="top-button" type="button" aria-label="Settings">⚙</button>
         </div>
         <form id="typed-form" class="typed-form" hidden>
           <label for="typed-answer">Type the time you would say</label>

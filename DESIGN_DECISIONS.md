@@ -184,27 +184,31 @@ numerals are foreshortened by the same ellipse, so a hand lands on the numeral a
 student would read. Measured by fitting the face region in each image rather
 than eyeballed; an optional `rotation` is supported but no scene needed one.
 
-## 2026-09-05 — The whole scene is always shown, framed by a blurred backdrop
+## 2026-09-05 — The scene is the screen: full bleed, controls on the picture
 
-Each scene is displayed complete: the image is `contain`ed and the hand overlay
-uses the artwork's full pixel box with `xMidYMid meet`, so the two resolve to
-the same box with no measurement code at all. A blurred, darkened copy of the
-same picture fills the rest of the stage, so a 3:2 illustration on a much wider
-stage reads as framed rather than as a narrow strip between empty bars.
+The scene fills the viewport edge to edge. There is no top bar and no bottom
+band: Back, the round counter, Hold to Talk and Settings float directly on the
+artwork over a gradient scrim.
 
-Why: an earlier version filled the stage instead, cropping the picture to a
-wide band and panning to keep the clock in view. That kept clocks large but
-showed only a slice of artwork drawn to be seen whole — the scene is what makes
-this a game rather than a worksheet.
+Why: the bars cost 200 px of a 768 px screen, which is exactly the height the
+picture needed. Giving it back roughly DOUBLED every clock — a typical face
+went from ~104 px to ~167 px at 1366x768, and from ~73 px to ~125 px at the
+1024x600 floor — while removing the empty margins entirely.
 
-Cost, accepted knowingly: clocks are smaller than under cropping. A typical
-scene's face is ~162 px at 1920x1080, ~104 px at 1366x768 and ~73 px at the
-1024x600 floor, against the 88 px guide set for the old placeholder clock. The
-painted numerals are larger and cleaner than that placeholder's, so they stay
-readable in practice, but the town square's distant tower clock is genuinely
-small (~46 px at 1366x768) and is the scene to revisit first if a class
-struggles. The dock was tightened to 142 px to give the picture back what
-vertical room the 96 px hold control did not need.
+**All chrome is at the bottom on purpose.** Every painted clock sits in the
+upper part of its artwork, several in the top right, so a top bar would clip
+them; the bottom of every scene is floor, table or torso and never a clock.
+Verified: no clock is cropped or hidden behind the dock at 1024x600, 1366x768,
+1920x1080 or portrait.
+
+Cost, accepted knowingly: a 3:2 illustration cannot fill a 16:9 screen without
+cropping, so some of each picture is lost — about 16% of image height in
+landscape, and considerably more width in portrait. `fitScene` prefers the
+artwork's own centre framing and pans only as far as needed to keep the clock
+plus a margin on screen, so what goes is composition, never the clock. This
+supersedes the earlier decision to letterbox the whole picture behind a blurred
+backdrop, which kept every pixel of art but left clocks small and the screen
+mostly margin.
 
 ## 2026-09-05 — Scene 10 is a town square, and the two libraries are named apart
 

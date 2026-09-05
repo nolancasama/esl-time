@@ -282,17 +282,18 @@ returns an SVG `<g>` for the scene overlay) is what every scene uses; `analog`
 (a complete standalone SVG clock) remains registered as the artwork-free
 fallback. `digital`, `alarm`, `microwave` can be added later.
 
-### 4.1 Framing
+### 4.1 Framing (`fitScene` in `src/scene.js`)
 
-**The whole scene is always shown.** The image is `object-fit: contain` and the
-overlay is the artwork's full pixel box with `preserveAspectRatio="xMidYMid
-meet"`, so both resolve to the same box and SVG user units are source-image
-pixels — the hands track the painted clock at every size with no measurement
-code and nothing to recompute on resize.
+**The scene fills the screen edge to edge** — no top bar, no bottom band. One
+computed visible source rect drives both the image's `object-position` and the
+overlay's `viewBox`, so the two share a coordinate space and the hands cannot
+drift off the painted clock.
 
-The artwork is 3:2 and the stage is much wider, so a blurred, darkened copy of
-the same image fills the remaining stage behind it. Never crop the scene to
-enlarge the clock; the picture is the point.
+The rect prefers the artwork's own centre framing and pans only as far as needed
+to keep the clock plus a `1.2x` radius margin on screen. **No clock is ever
+cropped, at any supported size or orientation.** A 3:2 illustration cannot fill
+a 16:9 screen without loss, so composition is what gets cropped — never the
+clock.
 
 ---
 
@@ -369,8 +370,11 @@ opens the game, presses `スタート`, and plays at the default difficulty.
 large choices marked by a filled radio dot, not colour alone. Choosing a
 difficulty never starts a round; `もどる` returns to the title, top and bottom.
 
-- Scene fills most of the screen; the clock reads as an object inside the
-  scene, not a floating quiz card.
+- The scene fills the whole screen; the clock reads as an object inside the
+  room, not a floating quiz card.
+- Controls sit directly on the artwork over a gradient scrim, all along the
+  bottom edge: Back, round counter, Hold to Talk, Settings. Nothing is placed
+  over the upper picture, where every painted clock is.
 - Bottom-centre: one large "🎙 Hold to Talk" button, minimum 96 px tall and
   240 px wide, with Japanese helper text beneath: 押している間、話そう.
   While held it reads "Listening…".
