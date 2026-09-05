@@ -48,15 +48,24 @@ function minuteValue(token, minimum = 0) {
   return value >= minimum && value <= 59 ? value : null;
 }
 
-/** Lowercase, de-punctuate, and expand the numeral forms emitted by STT. */
-export function normalizeTranscript(raw) {
+/**
+ * Lowercase, de-punctuate, and expand the numeral forms emitted by STT, up to
+ * (but not including) filler removal. Shared by normalizeTranscript, which
+ * drops fillers for structure matching, and parseUtterance, which also needs
+ * the pre-filler tokens to check for a spoken "it's" (see spokenIts below).
+ */
+function tokenizeExpanded(raw) {
   let text = String(raw ?? '')
     .toLowerCase()
+    // Typed input commonly autocorrects a straight apostrophe to a curly one
+    // ("it's" -> "it’s"); fold every variant to ' before the char whitelist
+    // below would otherwise drop it and strand a stray "s" token.
+    .replace(/[‘’‛ʼ]/g, "'")
     .replace(/[^a-z0-9\s:']/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
-  if (!text) return '';
+  if (!text) return [];
 
   text = text
     .replace(/\bo\s*'\s*clocks?\b/g, 'oclock')
@@ -120,9 +129,28 @@ export function normalizeTranscript(raw) {
     expanded.push(token);
   }
 
+  return expanded;
+}
+
+/** Lowercase, de-punctuate, and expand the numeral forms emitted by STT. */
+export function normalizeTranscript(raw) {
   // Fillers are deliberately a closed list. In particular, numbers and time
   // markers survive so the parser can reject leftovers as bad grammar.
-  return expanded.filter((token) => !FILLERS.has(token)).join(' ');
+  return tokenizeExpanded(raw).filter((token) => !FILLERS.has(token)).join(' ');
+}
+
+/**
+ * Whether the student said "it's" / "its" / "it is" anywhere in the
+ * utterance. Checked against the pre-filler token list, since "it", "is",
+ * "it's" and "its" are themselves fillers that structure matching ignores.
+ */
+function spokenIts(preFillerTokens) {
+  for (let i = 0; i < preFillerTokens.length; i += 1) {
+    const token = preFillerTokens[i];
+    if (token === "it's" || token === 'its') return true;
+    if (token === 'it' && preFillerTokens[i + 1] === 'is') return true;
+  }
+  return false;
 }
 
 function parsed(time, form, preferred) {
@@ -133,11 +161,8 @@ function malformed(form = null) {
   return { time: null, form, valid: false, preferred: false };
 }
 
-/** Parse a cleaned utterance as one complete, ordered time expression. */
-export function parseUtterance(raw) {
-  let tokens = normalizeTranscript(raw).split(' ').filter(Boolean);
-  if (!tokens.length) return null;
-
+/** Parse a cleaned, filler-stripped token list as one ordered time expression. */
+function parseStructure(tokens) {
   if (tokens.at(-1) === 'am' || tokens.at(-1) === 'pm') tokens = tokens.slice(0, -1);
   if (!tokens.length) return malformed();
 
@@ -206,6 +231,22 @@ export function parseUtterance(raw) {
   // misuse and prevents number-hunting from accepting reordered answers.
   const form = tokens.includes('oclock') ? 'oclock' : null;
   return malformed(form);
+}
+
+/** Parse a cleaned utterance as one complete, ordered time expression. */
+export function parseUtterance(raw) {
+  const preFillerTokens = tokenizeExpanded(raw);
+  const tokens = preFillerTokens.filter((token) => !FILLERS.has(token));
+  if (!tokens.length) return null;
+
+  const result = parseStructure(tokens);
+
+  // "It's" (or "it is" / "its") is required grammar, not decoration: an
+  // otherwise-valid structure said without it is the same teaching failure as
+  // any other malformed order, so it downgrades to bad-grammar rather than
+  // silently passing.
+  if (result && result.valid && !spokenIts(preFillerTokens)) return malformed(result.form);
+  return result;
 }
 
 function verdict(target, parsedResult, heard) {
