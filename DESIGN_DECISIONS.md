@@ -159,23 +159,27 @@ numerals are foreshortened by the same ellipse, so a hand lands on the numeral a
 student would read. Measured by fitting the face region in each image rather
 than eyeballed; an optional `rotation` is supported but no scene needed one.
 
-## 2026-09-05 — Scenes fill the stage and push in to keep the clock readable
+## 2026-09-05 — The whole scene is always shown, framed by a blurred backdrop
 
-The artwork is 3:2 but the game stage is far wider (about 2.6:1 at 1024x600).
-Fitting the whole picture (`contain`) left ~40% of the width empty and shrank
-every clock to 32-82 CSS px, below the 88 px readable floor already established
-for the placeholder clock. So scenes fill the stage instead, and `scene.js`
-computes ONE visible source rect that drives both the image's `object-position`
-and the overlay's `viewBox`.
+Each scene is displayed complete: the image is `contain`ed and the hand overlay
+uses the artwork's full pixel box with `xMidYMid meet`, so the two resolve to
+the same box with no measurement code at all. A blurred, darkened copy of the
+same picture fills the rest of the stage, so a 3:2 illustration on a much wider
+stage reads as framed rather than as a narrow strip between empty bars.
 
-The rect prefers the artwork's own centre framing and pans only as far as needed
-to keep the clock plus a margin on screen, so no clock is ever cropped away —
-verified at 1024x600, 1366x768, 1920x1080 and portrait. Where a scene's painted
-clock is small in its own artwork (the distant tower in the town square) the
-view pushes in further until the face clears 88 px. Cost: the bottom of the
-composition, usually the character's torso, is cropped at wide aspect ratios.
-Rejected: letterboxing, which keeps the whole picture but fails the thing the
-game is actually for — reading the clock.
+Why: an earlier version filled the stage instead, cropping the picture to a
+wide band and panning to keep the clock in view. That kept clocks large but
+showed only a slice of artwork drawn to be seen whole — the scene is what makes
+this a game rather than a worksheet.
+
+Cost, accepted knowingly: clocks are smaller than under cropping. A typical
+scene's face is ~162 px at 1920x1080, ~104 px at 1366x768 and ~73 px at the
+1024x600 floor, against the 88 px guide set for the old placeholder clock. The
+painted numerals are larger and cleaner than that placeholder's, so they stay
+readable in practice, but the town square's distant tower clock is genuinely
+small (~46 px at 1366x768) and is the scene to revisit first if a class
+struggles. The dock was tightened to 142 px to give the picture back what
+vertical room the 96 px hold control did not need.
 
 ## 2026-09-05 — Scene 10 is a town square, and the two libraries are named apart
 

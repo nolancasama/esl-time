@@ -17,8 +17,8 @@ frozen matcher.
   WebP in `assets/scenes/` (3.17 MB total, down from 28.2 MB of PNG).
 - Each scene's clock is painted into the artwork WITHOUT hands; the game
   overlays only hands, positioned from per-scene ellipse geometry measured in
-  source image pixels. Scenes fill the stage and push in as needed so no clock
-  is cropped and every face clears the 88 px readable floor.
+  source image pixels. Each scene is shown whole (never cropped), framed by a
+  blurred copy of itself filling the wider stage.
 - Independent shuffled-pass scheduling for time and scene decks, including
   difficult-practice fallback behavior.
 - Layered scene mounting and a registry-dispatched inline SVG analog clock with
@@ -54,11 +54,10 @@ frozen matcher.
 
 ## Known Limits
 
-- The town square's clock is a distant tower clock, small in its own artwork, so
-  that scene pushes in hard to reach the 88 px floor and shows much less of the
-  square than the other eleven scenes show of theirs.
-- Filling the stage crops the bottom of each composition at wide aspect ratios,
-  usually the character's torso. Faces and clocks stay in frame.
+- Showing each scene whole means clocks are smaller than they would be under
+  cropping: a typical face is ~162 px at 1920x1080, ~104 px at 1366x768, ~73 px
+  at 1024x600. The town square's distant tower clock is the small one (~46 px at
+  1366x768) and is the first thing to revisit if a class struggles to read it.
 - Character and voice files intentionally remain null; only `background` art
   landed.
 - Speech recognition availability and behavior still depend on the browser and

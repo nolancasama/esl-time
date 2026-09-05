@@ -40,14 +40,14 @@ button { color: inherit; cursor: pointer; }
 
 .screen.is-visible { display: flex; }
 
-/* Title screen: the game's own artwork behind a scrim, then only a title, one
-   big start button and a quieter options button. A child should not have to
-   read or decide anything here. */
+/* Title screen: a screen of its own. It deliberately does NOT sit on a scene
+   photo — that read as the title being overlaid on a round already in
+   progress. Just a title, one big start button and a quieter options button. */
 #screen-title {
   align-items: center;
   justify-content: center;
   padding: 28px;
-  background: #14202a url("../assets/scenes/01-classroom.webp") center/cover no-repeat;
+  background: radial-gradient(circle at 50% 0%, #ffffff 0, #edf5fa 47%, #dce8f0 100%);
 }
 
 .title-plate {
@@ -57,10 +57,6 @@ button { color: inherit; cursor: pointer; }
   width: min(640px, 100%);
   padding: clamp(26px, 4vh, 44px) clamp(24px, 4vw, 48px);
   text-align: center;
-  border-radius: 28px;
-  /* Near-opaque: at .93 the chalkboard behind it read through the heading. */
-  background: rgba(255, 255, 255, .975);
-  box-shadow: 0 24px 60px rgba(14, 28, 40, .42);
 }
 
 h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
@@ -116,7 +112,10 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 .button-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 
 /* The control dock owns its own row, leaving the entire stage unobstructed. */
-.game-shell { display: grid; grid-template-rows: 64px minmax(0, 1fr) 166px; width: 100%; height: 100%; }
+/* The dock is kept as tight as the 96px hold control allows: the scene is a
+   3:2 picture shown whole, so every row given back to the stage makes the
+   artwork - and the clock in it - larger. */
+.game-shell { display: grid; grid-template-rows: 58px minmax(0, 1fr) 142px; width: 100%; height: 100%; }
 .top-bar {
   z-index: 10;
   display: grid;
@@ -139,11 +138,22 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 .scene-layer { position: absolute; }
 .scene-background { z-index: 0; inset: 0; }
 
-/* The image and the hand overlay occupy the same box and are driven from one
-   computed source rect (see fitScene in scene.js): object-position here and
-   the overlay's viewBox there resolve to the same crop, so the hands stay
-   locked to the painted clock at every stage size. */
-.scene-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* The whole scene is always visible: `contain` here and `xMidYMid meet` on the
+   overlay resolve to the same box, so the overlay's viewBox units are exactly
+   source-image pixels and the hands stay locked to the painted clock. */
+.scene-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+
+/* Fills the stage behind the contained scene so the picture reads as framed
+   rather than stranded between empty bars. */
+.scene-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(26px) saturate(.85) brightness(.78);
+  transform: scale(1.12);
+}
 .scene-hands { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 
 .painted-hand { stroke-linecap: round; }

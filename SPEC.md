@@ -282,18 +282,17 @@ returns an SVG `<g>` for the scene overlay) is what every scene uses; `analog`
 (a complete standalone SVG clock) remains registered as the artwork-free
 fallback. `digital`, `alarm`, `microwave` can be added later.
 
-### 4.1 Framing (`fitScene` in `src/scene.js`)
+### 4.1 Framing
 
-The artwork is 3:2; the stage is much wider. Scenes therefore **fill** the stage
-rather than letterboxing, and one computed visible source rect drives both the
-image's `object-position` and the overlay's `viewBox`.
+**The whole scene is always shown.** The image is `object-fit: contain` and the
+overlay is the artwork's full pixel box with `preserveAspectRatio="xMidYMid
+meet"`, so both resolve to the same box and SVG user units are source-image
+pixels — the hands track the painted clock at every size with no measurement
+code and nothing to recompute on resize.
 
-The rect prefers the artwork's own centre framing and pans only as far as needed
-to keep the clock plus a `1.45x` radius margin on screen — **no clock is ever
-cropped away, in any supported size or orientation.** If a scene's painted clock
-would still render below the **88 CSS px** readable floor, the view pushes in
-further until it clears. Anything else in the composition may be cropped; the
-clock may not.
+The artwork is 3:2 and the stage is much wider, so a blurred, darkened copy of
+the same image fills the remaining stage behind it. Never crop the scene to
+enlarge the clock; the picture is the point.
 
 ---
 
