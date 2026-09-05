@@ -23,6 +23,11 @@ frozen matcher.
   difficult-practice fallback behavior.
 - Layered scene mounting and a registry-dispatched inline SVG analog clock with
   60 ticks, 12 numerals, and a minute-adjusted hour hand.
+- Each scene opens with a prerecorded "What time is it?" in a voice matched to
+  its character; the answer control is hidden until that recording ends, with a
+  quiet replay button beside it.
+- Timed scoring (stopwatch, penalties, best times) is implemented but switched
+  off behind `ENABLE_SCORING` in src/game.js.
 - Press-and-hold Web Speech recognition with pointer capture, cancellation
   paths, keyboard parity, a five-second limit, and typed fallback.
 - Correct answers are accepted mid-hold: interim hypotheses are judged live
@@ -37,7 +42,7 @@ frozen matcher.
 
 ## Verified
 
-- 428 matcher assertions pass (`npm test`). Includes: curly/smart-quote
+- 435 matcher assertions and 26 session-deck assertions pass (`npm test`). Includes: curly/smart-quote
   apostrophes now normalize like straight ones, and saying "it's"/"its"/"it
   is" is required for any answer to count as correct (see
   DESIGN_DECISIONS.md, 2026-09-05) — a structurally valid time said without
@@ -64,8 +69,10 @@ frozen matcher.
   1920x1080 for a typical scene. The town square's distant tower clock is still
   the smallest (~55-104 px) and is the first thing to revisit if a class
   struggles to read it.
-- Character and voice files intentionally remain null; only `background` art
-  landed.
+- Scene `character` foreground art is still null; background art and question
+  voices have landed.
+- Only one young voice per gender exists, so five scenes share each. The
+  supplied adult male recording is unused: no scene shows an adult man.
 - Speech recognition availability and behavior still depend on the browser and
   its microphone policy; typed entry is the supported fallback.
 

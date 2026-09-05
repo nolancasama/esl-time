@@ -48,6 +48,8 @@
 
       <div class="answer-dock">
         <div class="feedback-line" id="feedback" aria-live="polite"></div>
+        <button id="replay-question" class="replay-button" type="button" hidden
+                aria-label="Play the question again">🔊</button>
         <div class="dock-center">
           <div id="speech-controls" class="speech-controls">
             <button id="hold-to-talk" class="hold-button" type="button">
@@ -81,14 +83,17 @@
   </section>
 
   <section id="screen-summary" class="screen summary-screen" aria-labelledby="summary-title">
-    <p class="eyebrow">FINISH!</p>
+    <p class="eyebrow">SESSION COMPLETE</p>
     <h2 id="summary-title">Nice work!</h2>
     <p id="summary-score" class="summary-score">0:00.0</p>
     <p id="summary-new-best" class="summary-new-best" hidden>NEW BEST!</p>
     <div class="summary-stats">
+      <div class="summary-stat"><strong id="summary-correct">0</strong><span>Correct</span></div>
+      <div class="summary-stat"><strong id="summary-first">0</strong><span>First try</span></div>
+    </div>
+    <div id="summary-timed-stats" class="summary-stats" hidden>
       <div class="summary-stat"><strong id="summary-base">0:00.0</strong><span>Base time</span></div>
       <div class="summary-stat"><strong id="summary-penalty">+0 sec</strong><span>Mistakes</span></div>
-      <div class="summary-stat"><strong id="summary-first">0</strong><span>First try</span></div>
       <div class="summary-stat"><strong id="summary-best">—</strong><span>Best</span></div>
     </div>
     <div class="practice-panel">

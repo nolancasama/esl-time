@@ -111,6 +111,39 @@ Why: the frozen round loop explicitly adds a time to the difficult pool after
 the reveal threshold. `no-time`, `empty`, and sub-300 ms holds remain free
 retries and never affect either progress or first-try credit.
 
+## 2026-09-05 — The character asks the question, and gates the answer
+
+Each scene plays a prerecorded "What time is it?" in a voice matched to the
+person in its artwork, and the answer control stays HIDDEN until that recording
+finishes. Hidden rather than merely disabled: a visible button invites a child
+to start answering over the question, and an open microphone would hear the
+game's own recording.
+
+Reveal is driven by the audio's real `ended` event, never a fixed delay, since
+the clips differ in length. Any failure — missing file, blocked autoplay,
+character audio switched off — settles the same callback exactly once, so a
+student can never be stranded waiting for a sound that will not come.
+
+Voices are matched to the visible character, not the scene number: the two adult
+women (teacher, kitchen) use the adult female recordings, and the ten children
+use the young voices. The supplied adult male recording is deliberately UNUSED,
+because no scene shows an adult man in the foreground; a wrong-sounding voice
+would be worse than a repeated one. With one young voice per gender available,
+five scenes share each — more variety needs more recordings, not remapping.
+
+A quiet replay button appears with the control and re-asks the question. It
+re-hides the control while playing and never counts as an attempt.
+
+## 2026-09-05 — Timed scoring is switched off behind a flag
+
+`ENABLE_SCORING` is false. The stopwatch, penalties, best times and the timed
+result screen are built and tested but dormant; the game currently focuses on
+the question-and-answer exchange without speed pressure. Plain round progress
+("3 / 12") is unaffected and still shown.
+
+Why a flag rather than deletion: the behaviour was specified in detail and
+verified, and removing it would throw away working code that may well come back.
+
 ## 2026-09-05 — Correct answers are accepted mid-hold, and only correct ones
 
 Interim recognition hypotheses are judged while the child is still holding the

@@ -1,6 +1,6 @@
 import { allDifficulties, levelIdForDifficulty } from './data/times.js';
 import { Progress } from './progress.js';
-import { TimeGame, formatRunTime } from './game.js';
+import { TimeGame, formatRunTime, ENABLE_SCORING } from './game.js';
 import { renderClock } from './clock.js';
 
 const progress = new Progress();
@@ -49,15 +49,21 @@ function buildDifficultyChoices() {
 
 function renderSummary(summary) {
   lastSummary = summary;
-  const penaltySeconds = Math.round(summary.penaltyMs / 1000);
-  document.querySelector('#summary-score').textContent = formatRunTime(summary.finalScoreMs);
-  document.querySelector('#summary-base').textContent = formatRunTime(summary.elapsedMs);
-  document.querySelector('#summary-penalty').textContent = `+${penaltySeconds} sec`;
+  const timed = summary.scoringEnabled;
+  // With scoring off the result is just how the round went, not a race result.
+  document.querySelector('#summary-score').hidden = !timed;
+  document.querySelector('#summary-timed-stats').hidden = !timed;
+  document.querySelector('#summary-new-best').hidden = !timed || !summary.isNewBest;
+  document.querySelector('#summary-correct').textContent = `${summary.correct} / ${summary.rounds}`;
   document.querySelector('#summary-first').textContent = `${summary.firstTry} / ${summary.rounds}`;
-  document.querySelector('#summary-best').textContent = summary.bestMs === null
-    ? '—'
-    : formatRunTime(summary.bestMs);
-  document.querySelector('#summary-new-best').hidden = !summary.isNewBest;
+  if (timed) {
+    document.querySelector('#summary-score').textContent = formatRunTime(summary.finalScoreMs);
+    document.querySelector('#summary-base').textContent = formatRunTime(summary.elapsedMs);
+    document.querySelector('#summary-penalty').textContent = `+${Math.round(summary.penaltyMs / 1000)} sec`;
+    document.querySelector('#summary-best').textContent = summary.bestMs === null
+      ? '—'
+      : formatRunTime(summary.bestMs);
+  }
   const practiceTimes = document.querySelector('#practice-times');
   practiceTimes.replaceChildren();
   if (!summary.missed.length) {
@@ -83,6 +89,7 @@ const game = new TimeGame({
     stage: document.querySelector('#stage'),
     progress: document.querySelector('#game-progress'),
     runTimer: document.querySelector('#run-timer'),
+    replayQuestion: document.querySelector('#replay-question'),
     timerBadge: document.querySelector('#run-timer-badge'),
     timerPop: document.querySelector('#timer-pop'),
     scoreCorrect: document.querySelector('#score-correct'),
@@ -136,6 +143,7 @@ for (const group of document.querySelectorAll('[data-setting]')) {
   });
 }
 
+document.querySelector('#replay-question').addEventListener('click', () => game.replayQuestion());
 document.querySelector('#start-game').addEventListener('click', startGame);
 document.querySelector('#open-options').addEventListener('click', () => openSettings('screen-title'));
 document.querySelector('#game-settings').addEventListener('click', () => openSettings('screen-game'));
@@ -169,6 +177,10 @@ document.querySelector('#change-level').addEventListener('click', () => showScre
 document.querySelector('#title-clock').append(renderClock('analog', { h: 10, m: 10 }, {
   label: 'Decorative clock',
 }));
+
+// Scoring is off for now, so its HUD is not shown at all.
+document.querySelector('#run-timer-badge').hidden = !ENABLE_SCORING;
+document.querySelector('.hud-divider').hidden = !ENABLE_SCORING;
 
 buildDifficultyChoices();
 renderSettings();

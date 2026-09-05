@@ -306,6 +306,24 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 
 .dock-center { display: flex; justify-content: center; width: 100%; }
 
+/* Secondary to Hold to Talk: small, quiet, and only offered once the question
+   has actually been asked. */
+.replay-button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: white;
+  border: 2px solid rgba(255,255,255,.28);
+  border-radius: 999px;
+  background: rgba(13, 23, 32, .5);
+  backdrop-filter: blur(6px);
+  font-size: 19px;
+  line-height: 1;
+}
+.replay-button:active { transform: scale(.94); }
+
 .feedback-line { min-height: 26px; color: white; font-size: clamp(17px, 2.2vw, 25px); font-weight: 800; text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.7); }
 .feedback-line.is-correct { color: #7af0b4; }
 .feedback-line.is-reveal { color: #ffd38c; }

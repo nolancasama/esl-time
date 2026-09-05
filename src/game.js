@@ -8,6 +8,12 @@ import { AudioManager } from './audio.js';
 
 export const SESSION_ROUNDS = 12;
 
+// Timed scoring is built but switched off: the game currently focuses on the
+// question-and-answer exchange without any speed pressure. Turning this back on
+// restores the stopwatch, penalties, best times and the timed result screen;
+// plain round progress ("3 / 12") is unaffected either way.
+export const ENABLE_SCORING = false;
+
 // Time penalties, kept here so they are tuned in one place. A run is scored as
 // elapsed time plus penalties, lower being better.
 export const WRONG_ATTEMPT_PENALTY_MS = 3000;
@@ -156,19 +162,55 @@ export class TimeGame {
       onFit: (clockRect) => this._placeScoreBadge(clockRect),
     });
     this.elements.stage.setAttribute('aria-label', `${this.current.scene.name} scene`);
-    this.audio.playCharacter(this.current.scene);
     this._setFeedback('');
     this._clearTranscript();
-    this._setAnswerEnabled(true);
-    // The run clock starts when the student first has control, and then runs
-    // continuously: ordinary scene changes and feedback animations are part of
-    // the run, so it is never restarted or paused between rounds.
-    this._startTimer();
     this._updateProgress();
-    if (this.typedFallback) this.elements.typedAnswer.focus({ preventScroll: true });
+    this._askQuestion();
+  }
+
+  /**
+   * The character asks "What time is it?", and only then can the student
+   * answer. The control is HIDDEN rather than merely disabled during the
+   * question, so nobody starts answering over the top of it — and so the
+   * game's own recording can never be picked up by the microphone.
+   */
+  _askQuestion() {
+    const round = this.current;
+    this._setAnswerReady(false);
+    this.audio.playCharacter(this.current.scene, this.progress.getSettings(), () => {
+      // A late callback from a scene the student already left must do nothing.
+      if (!this.active || this.current !== round || round.resolved) return;
+      this._setAnswerReady(true);
+    });
+  }
+
+  /** Replay the question without touching the round's score or attempts. */
+  replayQuestion() {
+    if (!this.active || this.paused || !this.current || this.current.resolved) return;
+    this._askQuestion();
+  }
+
+  /**
+   * Show or hide the answer control as one unit. Hiding also cancels any open
+   * recognition, so a round can never be listening while hidden.
+   */
+  _setAnswerReady(ready) {
+    const round = this.current;
+    if (round) round.answerReady = ready;
+    this.elements.speechControls.hidden = this.typedFallback || !ready;
+    if (this.elements.replayQuestion) this.elements.replayQuestion.hidden = !ready;
+    if (this.typedFallback) this.elements.typedForm.hidden = !ready;
+    this._setAnswerEnabled(ready);
+    if (ready) {
+      // The run clock starts when the student can first answer, and then runs
+      // continuously: ordinary scene changes and feedback are part of the run.
+      this._startTimer();
+      if (this.typedFallback) this.elements.typedAnswer.focus({ preventScroll: true });
+    }
   }
 
   _startTimer() {
+    if (!ENABLE_SCORING) return;
     if (!this.session || this.session.finalScoreMs !== null) return;
     this.timer.start();
     if (this.timerTick === null) {
@@ -196,7 +238,7 @@ export class TimeGame {
 
   /** Adds a time penalty and shows it, without ever touching the clock itself. */
   _penalise(milliseconds) {
-    if (!this.session) return;
+    if (!ENABLE_SCORING || !this.session) return;
     this.session.penaltyMs += milliseconds;
     const badge = this.elements.timerBadge;
     if (badge) {
@@ -326,9 +368,14 @@ export class TimeGame {
     this.typedFallback = true;
     this.speech.setEnabled(false);
     this.elements.speechControls.hidden = true;
-    this.elements.typedForm.hidden = false;
     this.elements.fallbackMessage.hidden = false;
-    if (this.active && !this.paused) this.elements.typedAnswer.focus({ preventScroll: true });
+    // The typed box follows the same gate as the hold control: it appears only
+    // once the character has finished asking.
+    const ready = Boolean(this.current?.answerReady) && !this.current?.resolved;
+    this.elements.typedForm.hidden = !ready;
+    if (this.active && !this.paused && ready) {
+      this.elements.typedAnswer.focus({ preventScroll: true });
+    }
   }
 
   _setAnswerEnabled(enabled) {
@@ -410,8 +457,10 @@ export class TimeGame {
       this._nextRound();
       return;
     }
-    this._setAnswerEnabled(!this.current?.resolved);
-    if (this.typedFallback && !this.current?.resolved) {
+    // Resuming must not hand back the control if the character is still asking.
+    const ready = Boolean(this.current?.answerReady) && !this.current?.resolved;
+    this._setAnswerEnabled(ready);
+    if (this.typedFallback && ready) {
       this.elements.typedAnswer.focus({ preventScroll: true });
     }
   }
@@ -432,10 +481,9 @@ export class TimeGame {
     this.session.elapsedMs = this.timer.elapsed();
     this.session.finalScoreMs = this.session.elapsedMs + this.session.penaltyMs;
     // Only a completed run can set a best, and bests never cross difficulties.
-    const best = this.progress.recordRunScore(
-      this.session.difficulty,
-      this.session.finalScoreMs,
-    );
+    const best = ENABLE_SCORING
+      ? this.progress.recordRunScore(this.session.difficulty, this.session.finalScoreMs)
+      : { bestMs: null, isNewBest: false };
 
     const result = {
       levelId: this.session.levelId,
@@ -450,6 +498,7 @@ export class TimeGame {
       isNewBest: best.isNewBest,
       missed: [...this.session.missed],
       rounds: SESSION_ROUNDS,
+      scoringEnabled: ENABLE_SCORING,
     };
     this.onComplete(result);
   }

@@ -33,30 +33,59 @@ export class AudioManager {
     this.character = null;
   }
 
-  /** Start a scene voice without making the round wait for loading or failure. */
-  playCharacter(sceneOrVoice, enabled = this.settings) {
+  /**
+   * Start a scene voice. `onDone` fires exactly once when the clip finishes OR
+   * when it cannot play at all — a missing file, a blocked autoplay or a
+   * disabled setting must never leave the caller waiting forever, because the
+   * answer control is revealed by this callback.
+   */
+  playCharacter(sceneOrVoice, enabled = this.settings, onDone = null) {
     this.stopCharacter();
-    if (!enabledFrom(enabled, 'characterAudio')) return false;
+    const finish = typeof onDone === 'function' ? onDone : () => {};
+    let settled = false;
+    const settle = (played) => {
+      if (settled) return;
+      settled = true;
+      finish(played);
+    };
+
+    if (!enabledFrom(enabled, 'characterAudio')) {
+      settle(false);
+      return false;
+    }
 
     const voice = sceneOrVoice?.voice ?? sceneOrVoice;
     const src = typeof voice === 'string' ? voice : voice?.src;
     const AudioElement = globalThis.Audio;
-    if (!src || typeof AudioElement !== 'function') return false;
+    if (!src || typeof AudioElement !== 'function') {
+      settle(false);
+      return false;
+    }
 
     try {
       const audio = new AudioElement(src);
       this.character = audio;
+      const release = () => {
+        if (this.character === audio) this.character = null;
+      };
+      audio.addEventListener('ended', () => { release(); settle(true); }, { once: true });
+      audio.addEventListener('error', () => { release(); settle(false); }, { once: true });
+
       const playResult = audio.play();
       if (playResult && typeof playResult.catch === 'function') {
-        playResult.catch(() => {
-          if (this.character === audio) this.character = null;
-        });
+        playResult.catch(() => { release(); settle(false); });
       }
       return true;
     } catch {
       this.character = null;
+      settle(false);
       return false;
     }
+  }
+
+  /** True while a scene voice is actively playing. */
+  get characterPlaying() {
+    return Boolean(this.character) && !this.character.paused && !this.character.ended;
   }
 
   playFeedback(kind, enabled = this.settings) {
