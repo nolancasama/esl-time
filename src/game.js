@@ -284,7 +284,7 @@ export class TimeGame {
     if (this.current.genuineWrong === 0) this.session.firstTry += 1;
     // Also stops recognition: disabling the control cancels the open session.
     this._setAnswerEnabled(false);
-    this._setFeedback('✓ Great!', 'correct');
+    this._setFeedback('✓ せいかい！', 'correct');
     this.elements.stage.classList.add('is-correct');
     this.audio.playFeedback('correct');
     this._updateProgress();
@@ -307,7 +307,7 @@ export class TimeGame {
     }
 
     this._showTranscript(result.heard);
-    this._setFeedback('Try again');
+    this._setFeedback('もういちど！');
     if (result.reason !== 'wrong-time' && result.reason !== 'bad-grammar') return;
 
     // Only a completed attempt that was genuinely a wrong time or bad grammar
@@ -429,6 +429,9 @@ export class TimeGame {
   _setFeedback(message, kind = '') {
     const feedback = this.elements.feedback;
     feedback.textContent = message;
+    // The UI speaks Japanese; the reveal is the English model sentence being
+    // taught, so it is the one feedback that is tagged as English.
+    feedback.lang = kind === 'reveal' ? 'en' : 'ja';
     feedback.classList.toggle('is-correct', kind === 'correct');
     feedback.classList.toggle('is-reveal', kind === 'reveal');
   }

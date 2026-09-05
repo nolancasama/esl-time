@@ -58,10 +58,10 @@ const LEVEL_TABLE = Object.freeze([
 // mapping onto one pool above. Mixed is the default: a child should be able to
 // open the game and press start without choosing anything.
 const DIFFICULTY_TABLE = Object.freeze([
-  { id: 'easy', levelId: 1, en: 'Easy', ja: 'かんたん', blurb: 'Whole hours only' },
-  { id: 'medium', levelId: 3, en: 'Medium', ja: 'ふつう', blurb: 'Hours, quarters and halves' },
-  { id: 'hard', levelId: 6, en: 'Hard', ja: 'むずかしい', blurb: 'Every five minutes' },
-  { id: 'mixed', levelId: 5, en: 'Mixed', ja: 'ミックス', blurb: 'A balanced mixture' },
+  { id: 'easy', levelId: 1, en: 'Easy', ja: 'かんたん', blurb: 'Whole hours only', blurbJa: 'ちょうどの じかん だけ' },
+  { id: 'medium', levelId: 3, en: 'Medium', ja: 'ふつう', blurb: 'Hours, quarters and halves', blurbJa: 'ちょうど・15ふん・30ぷん・45ふん' },
+  { id: 'hard', levelId: 6, en: 'Hard', ja: 'むずかしい', blurb: 'Every five minutes', blurbJa: '5ふん ごと ぜんぶ' },
+  { id: 'mixed', levelId: 5, en: 'Mixed', ja: 'ミックス', blurb: 'A balanced mixture', blurbJa: 'いろいろ まぜて' },
 ]);
 
 export const DEFAULT_DIFFICULTY = 'mixed';

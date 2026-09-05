@@ -205,7 +205,7 @@ export class SpeedRound {
       this.state.streak = 0;
       this.audio.playFeedback('incorrect');
     }
-    this._setFeedback('Try again');
+    this._setFeedback('もういちど！');
     this._afterAttempt(false);
   }
 
@@ -244,7 +244,7 @@ export class SpeedRound {
   _celebrateStreak(streak) {
     const banner = this.elements.streak;
     if (!banner) return;
-    banner.textContent = streak + ' STREAK!';
+    banner.textContent = streak + 'れんぞく！';
     banner.hidden = false;
     banner.classList.remove('is-shown');
     void banner.offsetWidth;
@@ -286,6 +286,7 @@ export class SpeedRound {
   _setFeedback(message, kind = '') {
     const feedback = this.elements.feedback;
     feedback.textContent = message;
+    feedback.lang = 'ja';
     feedback.classList.toggle('is-correct', kind === 'correct');
   }
 

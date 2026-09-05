@@ -27,7 +27,7 @@
       <main id="stage" class="stage" aria-label="Scene"></main>
 
       <button id="game-back" class="corner-button corner-left" type="button">
-        ← <span class="corner-label">Back</span>
+        ← <span class="corner-label" lang="ja">もどる</span>
       </button>
 
       <div id="game-progress" class="score-badge" aria-live="polite" aria-label="Score">
@@ -68,15 +68,15 @@
             </button>
           </div>
           <form id="typed-form" class="typed-form" hidden>
-            <label for="typed-answer">Type the time you would say</label>
+            <label for="typed-answer" lang="ja">こたえを かいてね</label>
             <div class="typed-row">
               <input id="typed-answer" type="text" inputmode="text" autocomplete="off" spellcheck="false">
-              <button class="button button-primary" type="submit">Check</button>
+              <button class="button button-primary" type="submit" lang="ja">チェック</button>
             </div>
           </form>
         </div>
-        <p id="fallback-message" class="fallback-message" hidden>
-          Speech recognition is unavailable. Type your answer instead.
+        <p id="fallback-message" class="fallback-message" hidden lang="ja">
+          マイクが つかえません。かいて こたえてね。
         </p>
         <p id="transcript" class="transcript" hidden></p>
       </div>
@@ -84,39 +84,39 @@
   </section>
 
   <section id="screen-summary" class="screen summary-screen" aria-labelledby="summary-title">
-    <p class="eyebrow">SESSION COMPLETE</p>
-    <h2 id="summary-title">Nice work!</h2>
+    <p class="eyebrow" lang="ja">ゲームクリア</p>
+    <h2 id="summary-title" lang="ja">よくできました！</h2>
     <p id="summary-score" class="summary-score">0:00.0</p>
-    <p id="summary-new-best" class="summary-new-best" hidden>NEW BEST!</p>
+    <p id="summary-new-best" class="summary-new-best" hidden lang="ja">しんきろく！</p>
     <div class="summary-stats">
-      <div class="summary-stat"><strong id="summary-correct">0</strong><span>Correct</span></div>
-      <div class="summary-stat"><strong id="summary-first">0</strong><span>First try</span></div>
+      <div class="summary-stat"><strong id="summary-correct">0</strong><span lang="ja">せいかい</span></div>
+      <div class="summary-stat"><strong id="summary-first">0</strong><span lang="ja">いっぱつせいかい</span></div>
     </div>
     <div id="summary-timed-stats" class="summary-stats" hidden>
-      <div class="summary-stat"><strong id="summary-base">0:00.0</strong><span>Base time</span></div>
-      <div class="summary-stat"><strong id="summary-penalty">+0 sec</strong><span>Mistakes</span></div>
-      <div class="summary-stat"><strong id="summary-best">—</strong><span>Best</span></div>
+      <div class="summary-stat"><strong id="summary-base">0:00.0</strong><span lang="ja">タイム</span></div>
+      <div class="summary-stat"><strong id="summary-penalty">+0 sec</strong><span lang="ja">ミス</span></div>
+      <div class="summary-stat"><strong id="summary-best">—</strong><span lang="ja">ベスト</span></div>
     </div>
     <div class="practice-panel">
-      <h3>Times to practise</h3>
+      <h3 lang="ja">れんしゅうする じかん</h3>
       <div id="practice-times" class="practice-times"></div>
     </div>
     <div class="challenge-offer">
       <button id="speed-challenge" class="button challenge-button" type="button">
         <span class="challenge-jp" lang="ja">スピードチャレンジ</span>
-        <span class="challenge-en">Optional · 60-second digital speed round</span>
+        <span class="challenge-en" lang="ja">じゆうさんか · 60びょうの デジタルとけい</span>
       </button>
     </div>
     <div class="button-row">
-      <button id="practice-again" class="button" type="button">Practice Again</button>
-      <button id="play-again" class="button" type="button">Play Again</button>
+      <button id="practice-again" class="button" type="button"><span lang="ja">にがてを れんしゅう</span></button>
+      <button id="play-again" class="button" type="button"><span lang="ja">もう一回</span></button>
       <button id="change-level" class="button button-quiet" type="button"><span lang="ja">おわる</span></button>
     </div>
   </section>
 
   <section id="screen-speed" class="screen speed-screen" aria-label="Digital speed challenge">
     <button id="speed-back" class="corner-button corner-left" type="button">
-      ← <span class="corner-label">Back</span>
+      ← <span class="corner-label" lang="ja">もどる</span>
     </button>
 
     <div class="speed-hud">
@@ -154,10 +154,10 @@
           </button>
         </div>
         <form id="speed-typed-form" class="typed-form" hidden>
-          <label for="speed-typed-answer">Type the time you would say</label>
+          <label for="speed-typed-answer" lang="ja">こたえを かいてね</label>
           <div class="typed-row">
             <input id="speed-typed-answer" type="text" inputmode="text" autocomplete="off" spellcheck="false">
-            <button class="button button-primary" type="submit">Check</button>
+            <button class="button button-primary" type="submit" lang="ja">チェック</button>
           </div>
         </form>
       </div>
@@ -170,14 +170,14 @@
   </section>
 
   <section id="screen-speed-result" class="screen summary-screen" aria-label="Speed challenge result">
-    <p class="eyebrow">TIME!</p>
+    <p class="eyebrow" lang="ja">タイムアップ！</p>
     <p id="speed-result-count" class="speed-result-count">0</p>
-    <p class="speed-result-label">correct</p>
-    <p id="speed-result-new-best" class="summary-new-best" hidden>NEW BEST!</p>
+    <p class="speed-result-label" lang="ja">せいかい</p>
+    <p id="speed-result-new-best" class="summary-new-best" hidden lang="ja">しんきろく！</p>
     <div class="summary-stats speed-result-stats">
-      <div class="summary-stat"><strong id="speed-result-mistakes">0</strong><span>Mistakes</span></div>
-      <div class="summary-stat"><strong id="speed-result-streak">0</strong><span>Longest streak</span></div>
-      <div class="summary-stat"><strong id="speed-result-best">—</strong><span>Best</span></div>
+      <div class="summary-stat"><strong id="speed-result-mistakes">0</strong><span lang="ja">ミス</span></div>
+      <div class="summary-stat"><strong id="speed-result-streak">0</strong><span lang="ja">さいこう れんぞく</span></div>
+      <div class="summary-stat"><strong id="speed-result-best">—</strong><span lang="ja">ベスト</span></div>
     </div>
     <div class="button-row">
       <button id="speed-again" class="button button-primary" type="button"><span lang="ja">もう一回</span></button>
@@ -191,45 +191,45 @@
         ← <span lang="ja">もどる</span>
       </button>
       <h2 id="settings-title" lang="ja">オプション</h2>
-      <p class="settings-intro">Options · Changes are saved on this device.</p>
+      <p class="settings-intro" lang="ja">せっていは この きたいに ほぞんされます。</p>
 
       <h3 class="difficulty-heading"><span lang="ja">難易度</span> <small>Difficulty</small></h3>
       <div id="difficulty-choices" class="difficulty-choices" role="radiogroup"
            aria-labelledby="settings-title"></div>
 
       <div class="setting-row">
-        <div><strong>Practice mode</strong><small>Difficult uses saved missed times when enough exist.</small></div>
-        <div class="segments" data-setting="practiceMode">
-          <button type="button" data-value="normal">Normal</button><button type="button" data-value="difficult">Difficult</button>
+        <div lang="ja"><strong>れんしゅうモード</strong><small>「にがて」は まちがえた じかんが たまると それを だします。</small></div>
+        <div class="segments" data-setting="practiceMode" lang="ja">
+          <button type="button" data-value="normal">ふつう</button><button type="button" data-value="difficult">にがて</button>
         </div>
       </div>
       <div class="setting-row">
-        <div><strong>Character audio</strong><small>Play a scene voice when one is added.</small></div>
-        <div class="segments" data-setting="characterAudio">
-          <button type="button" data-value="true">On</button><button type="button" data-value="false">Off</button>
+        <div lang="ja"><strong>キャラクターの こえ</strong><small>「なんじですか」を さいせいします。</small></div>
+        <div class="segments" data-setting="characterAudio" lang="ja">
+          <button type="button" data-value="true">オン</button><button type="button" data-value="false">オフ</button>
         </div>
       </div>
       <div class="setting-row">
-        <div><strong>Feedback sounds</strong><small>Short correct and try-again sounds.</small></div>
-        <div class="segments" data-setting="feedbackSounds">
-          <button type="button" data-value="true">On</button><button type="button" data-value="false">Off</button>
+        <div lang="ja"><strong>こうかおん</strong><small>せいかい・もういちど の みじかい おと。</small></div>
+        <div class="segments" data-setting="feedbackSounds" lang="ja">
+          <button type="button" data-value="true">オン</button><button type="button" data-value="false">オフ</button>
         </div>
       </div>
       <div class="setting-row">
-        <div><strong>Reveal after</strong><small>Genuine wrong attempts before showing the model.</small></div>
-        <div class="segments" data-setting="revealAfter">
-          <button type="button" data-value="2">2 attempts</button><button type="button" data-value="3">3 attempts</button>
+        <div lang="ja"><strong>こたえを みせる</strong><small>なんかい まちがえたら おてほんの ぶんを だすか。</small></div>
+        <div class="segments" data-setting="revealAfter" lang="ja">
+          <button type="button" data-value="2">2かい</button><button type="button" data-value="3">3かい</button>
         </div>
       </div>
       <div class="setting-row">
-        <div><strong>Show transcript (teacher)</strong><small>Off by default; never needed by students.</small></div>
-        <div class="segments" data-setting="showTranscript">
-          <button type="button" data-value="true">On</button><button type="button" data-value="false">Off</button>
+        <div lang="ja"><strong>にんしきけっかを みる（せんせい）</strong><small>ふだんは オフ。じどうが つかうことは ありません。</small></div>
+        <div class="segments" data-setting="showTranscript" lang="ja">
+          <button type="button" data-value="true">オン</button><button type="button" data-value="false">オフ</button>
         </div>
       </div>
       <div class="setting-row">
-        <div><strong>Reset progress</strong><small>Clear all saved time records.</small></div>
-        <button id="reset-progress" class="button button-danger" type="button">Reset</button>
+        <div lang="ja"><strong>きろくを けす</strong><small>ほぞんした じかんの きろくを ぜんぶ けします。</small></div>
+        <button id="reset-progress" class="button button-danger" type="button" lang="ja">けす</button>
       </div>
       <div class="button-row settings-actions">
         <button id="settings-done" class="button button-primary" type="button">

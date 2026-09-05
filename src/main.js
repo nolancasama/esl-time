@@ -38,7 +38,8 @@ function buildDifficultyChoices() {
       </span>
     `;
     button.querySelector('.difficulty-ja').textContent = difficulty.ja;
-    button.querySelector('.difficulty-en').textContent = `${difficulty.en} · ${difficulty.blurb}`;
+    // Japanese first, with the English kept for the teacher.
+    button.querySelector('.difficulty-en').textContent = `${difficulty.blurbJa} · ${difficulty.en}`;
     button.addEventListener('click', () => {
       // Choosing a difficulty never starts a round; the child presses スタート.
       progress.updateSettings({ difficulty: difficulty.id });
@@ -70,7 +71,8 @@ function renderSummary(summary) {
   if (!summary.missed.length) {
     const empty = document.createElement('span');
     empty.className = 'empty-practice';
-    empty.textContent = 'No revealed times this session.';
+    empty.lang = 'ja';
+    empty.textContent = 'ぜんぶ じぶんで こたえられました！';
     practiceTimes.append(empty);
   } else {
     for (const key of summary.missed) {
@@ -208,10 +210,10 @@ function closeSettings() {
 document.querySelector('#settings-done').addEventListener('click', closeSettings);
 document.querySelector('#settings-back').addEventListener('click', closeSettings);
 document.querySelector('#reset-progress').addEventListener('click', (event) => {
-  if (!window.confirm('Reset all saved progress on this device?')) return;
+  if (!window.confirm('この きたいの きろくを ぜんぶ けしますか？')) return;
   progress.reset();
-  event.currentTarget.textContent = 'Progress reset';
-  setTimeout(() => { event.currentTarget.textContent = 'Reset'; }, 1400);
+  event.currentTarget.textContent = 'けしました';
+  setTimeout(() => { event.currentTarget.textContent = 'けす'; }, 1400);
 });
 document.querySelector('#practice-again').addEventListener('click', () => {
   if (!lastSummary) return;

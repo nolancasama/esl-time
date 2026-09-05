@@ -644,6 +644,10 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
   55% { opacity: 1; transform: scale(1); }
 }
 
+/* Wide Latin letterspacing is wrong for kana - it reads as gaps between
+   syllables rather than as emphasis - so the Japanese labels pull it back. */
+.eyebrow[lang="ja"], .speed-result-label[lang="ja"] { letter-spacing: .06em; }
+
 /* Used by both result screens. It had no rule of its own until the speed
    challenge needed one. */
 .eyebrow {
@@ -690,7 +694,7 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 }
 .challenge-button:active { transform: translateY(4px); box-shadow: 0 3px 0 #1a4a86; }
 .challenge-jp { font-size: clamp(23px, 3.2vw, 33px); font-weight: 900; letter-spacing: .03em; }
-.challenge-en { font-size: clamp(12px, 1.4vw, 15px); font-weight: 800; opacity: .85; }
+.challenge-en { font-size: clamp(13px, 1.5vw, 16px); font-weight: 800; opacity: .85; }
 
 @media (max-height: 700px) and (orientation: landscape) {
   .speed-screen { padding: 96px 4vw 170px; }
