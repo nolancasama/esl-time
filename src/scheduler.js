@@ -132,19 +132,33 @@ export function createScheduler({
   levelId,
   progress = null,
   practiceMode = 'normal',
+  sessionTimes = null,
   rng = Math.random,
 } = {}) {
   const level = getLevel(levelId);
   if (!level) throw new RangeError(`Unknown level: ${levelId}`);
   if (typeof rng !== 'function') throw new TypeError('rng must be a function');
 
-  const timePool = buildTimePool({ levelId, progress, practiceMode });
-  const useMixedWeights = practiceMode !== 'difficult' && level.minuteWeights;
-  const nextTime = makeDealer(timePool, {
-    rng,
-    keyOf: timeKey,
-    weightOf: useMixedWeights ? (time) => level.minuteWeights[time.m] : null,
-  });
+  // A pre-generated session deck (normal play) is dealt in its own order: it is
+  // already balanced and spread, so re-shuffling it here would undo that.
+  // Difficult practice keeps the weighted pool, which draws on missed times.
+  let nextTime;
+  if (sessionTimes && sessionTimes.length && practiceMode !== 'difficult') {
+    let index = 0;
+    nextTime = () => {
+      const time = sessionTimes[index % sessionTimes.length];
+      index += 1;
+      return time;
+    };
+  } else {
+    const timePool = buildTimePool({ levelId, progress, practiceMode });
+    const useMixedWeights = practiceMode !== 'difficult' && level.minuteWeights;
+    nextTime = makeDealer(timePool, {
+      rng,
+      keyOf: timeKey,
+      weightOf: useMixedWeights ? (time) => level.minuteWeights[time.m] : null,
+    });
+  }
   const nextScene = makeDealer(allScenes(), {
     rng,
     keyOf: (scene) => scene.id,

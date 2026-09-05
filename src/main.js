@@ -1,6 +1,7 @@
 import { allDifficulties, levelIdForDifficulty } from './data/times.js';
 import { Progress } from './progress.js';
-import { TimeGame } from './game.js';
+import { TimeGame, formatRunTime } from './game.js';
+import { renderClock } from './clock.js';
 
 const progress = new Progress();
 const screens = [...document.querySelectorAll('.screen')];
@@ -48,8 +49,15 @@ function buildDifficultyChoices() {
 
 function renderSummary(summary) {
   lastSummary = summary;
-  document.querySelector('#summary-correct').textContent = String(summary.correct);
-  document.querySelector('#summary-first').textContent = String(summary.firstTry);
+  const penaltySeconds = Math.round(summary.penaltyMs / 1000);
+  document.querySelector('#summary-score').textContent = formatRunTime(summary.finalScoreMs);
+  document.querySelector('#summary-base').textContent = formatRunTime(summary.elapsedMs);
+  document.querySelector('#summary-penalty').textContent = `+${penaltySeconds} sec`;
+  document.querySelector('#summary-first').textContent = `${summary.firstTry} / ${summary.rounds}`;
+  document.querySelector('#summary-best').textContent = summary.bestMs === null
+    ? '—'
+    : formatRunTime(summary.bestMs);
+  document.querySelector('#summary-new-best').hidden = !summary.isNewBest;
   const practiceTimes = document.querySelector('#practice-times');
   practiceTimes.replaceChildren();
   if (!summary.missed.length) {
@@ -74,6 +82,9 @@ const game = new TimeGame({
   elements: {
     stage: document.querySelector('#stage'),
     progress: document.querySelector('#game-progress'),
+    runTimer: document.querySelector('#run-timer'),
+    timerBadge: document.querySelector('#run-timer-badge'),
+    timerPop: document.querySelector('#timer-pop'),
     scoreCorrect: document.querySelector('#score-correct'),
     scoreTotal: document.querySelector('#score-total'),
     scorePop: document.querySelector('#score-pop'),
@@ -152,6 +163,12 @@ document.querySelector('#practice-again').addEventListener('click', () => {
 });
 document.querySelector('#play-again').addEventListener('click', startGame);
 document.querySelector('#change-level').addEventListener('click', () => showScreen('screen-title'));
+
+// The standalone analog renderer, otherwise unused now that every scene paints
+// its own clock. 10:10 is the classic display setting: hands up and symmetric.
+document.querySelector('#title-clock').append(renderClock('analog', { h: 10, m: 10 }, {
+  label: 'Decorative clock',
+}));
 
 buildDifficultyChoices();
 renderSettings();

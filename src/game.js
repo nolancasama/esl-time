@@ -1,11 +1,63 @@
 import { matchTime, spokenForm } from './time-match.js';
 import { levelIdForDifficulty, timeKey } from './data/times.js';
+import { generateSessionTimes } from './data/session-times.js';
 import { createScheduler } from './scheduler.js';
 import { mountScene } from './scene.js';
 import { HoldToTalk, MIC, speechSupported } from './speech.js';
 import { AudioManager } from './audio.js';
 
 export const SESSION_ROUNDS = 12;
+
+// Time penalties, kept here so they are tuned in one place. A run is scored as
+// elapsed time plus penalties, lower being better.
+export const WRONG_ATTEMPT_PENALTY_MS = 3000;
+export const REVEAL_PENALTY_MS = 5000;
+
+const TIMER_TICK_MS = 100;
+
+/** Monotonic stopwatch for one run. Never derives elapsed time from tick counts. */
+class RunTimer {
+  constructor() {
+    this.accumulatedMs = 0;
+    this.startedAt = null;
+  }
+
+  get running() {
+    return this.startedAt !== null;
+  }
+
+  start() {
+    if (this.running) return;
+    this.startedAt = performance.now();
+  }
+
+  pause() {
+    if (!this.running) return;
+    this.accumulatedMs += performance.now() - this.startedAt;
+    this.startedAt = null;
+  }
+
+  /** Elapsed milliseconds, computed from timestamps rather than tick counts. */
+  elapsed() {
+    return this.running
+      ? this.accumulatedMs + (performance.now() - this.startedAt)
+      : this.accumulatedMs;
+  }
+
+  reset() {
+    this.accumulatedMs = 0;
+    this.startedAt = null;
+  }
+}
+
+/** `1:47.4` — minutes, seconds and tenths. */
+export function formatRunTime(totalMs) {
+  const ms = Math.max(0, Math.round(totalMs));
+  const minutes = Math.floor(ms / 60000);
+  const seconds = Math.floor((ms % 60000) / 1000);
+  const tenths = Math.floor((ms % 1000) / 100);
+  return `${minutes}:${String(seconds).padStart(2, '0')}.${tenths}`;
+}
 const ACCIDENTAL_TAP_MS = 300;
 
 export class TimeGame {
@@ -22,6 +74,8 @@ export class TimeGame {
     this.advanceTimer = null;
     this.current = null;
     this.session = null;
+    this.timer = new RunTimer();
+    this.timerTick = null;
 
     this.speech = new HoldToTalk(elements.holdButton, {
       onResult: (transcripts, detail) => this._judge(transcripts, detail),
@@ -46,19 +100,33 @@ export class TimeGame {
     const selectedLevel = Number(levelId ?? levelIdForDifficulty(settings.difficulty));
     const selectedMode = practiceMode ?? settings.practiceMode;
     this.audio.setSettings(settings);
+    // The whole deck is generated before the run starts, so no time is chosen
+    // mid-run and the stopwatch never waits on it.
+    const sessionTimes = selectedMode === 'difficult'
+      ? null
+      : generateSessionTimes(settings.difficulty, this.previousTimes);
+    this.previousTimes = sessionTimes;
     this.scheduler = createScheduler({
       levelId: selectedLevel,
       practiceMode: selectedMode,
+      sessionTimes,
       progress: this.progress,
     });
     this.session = {
       levelId: selectedLevel,
       practiceMode: selectedMode,
+      difficulty: settings.difficulty,
       roundIndex: -1,
       correct: 0,
       firstTry: 0,
+      genuineWrong: 0,
+      penaltyMs: 0,
+      elapsedMs: 0,
+      finalScoreMs: null,
       missed: new Set(),
     };
+    this.timer.reset();
+    this._renderTimer();
     // Tracks what the badge is currently showing, so a rising score can be
     // celebrated exactly once rather than on every progress repaint.
     this.shownCorrect = 0;
@@ -92,8 +160,53 @@ export class TimeGame {
     this._setFeedback('');
     this._clearTranscript();
     this._setAnswerEnabled(true);
+    // The run clock starts when the student first has control, and then runs
+    // continuously: ordinary scene changes and feedback animations are part of
+    // the run, so it is never restarted or paused between rounds.
+    this._startTimer();
     this._updateProgress();
     if (this.typedFallback) this.elements.typedAnswer.focus({ preventScroll: true });
+  }
+
+  _startTimer() {
+    if (!this.session || this.session.finalScoreMs !== null) return;
+    this.timer.start();
+    if (this.timerTick === null) {
+      this.timerTick = setInterval(() => this._renderTimer(), TIMER_TICK_MS);
+    }
+    this._renderTimer();
+  }
+
+  _pauseTimer() {
+    this.timer.pause();
+    if (this.timerTick !== null) {
+      clearInterval(this.timerTick);
+      this.timerTick = null;
+    }
+    this._renderTimer();
+  }
+
+  _renderTimer() {
+    const display = this.elements.runTimer;
+    if (!display) return;
+    const elapsed = this.session ? this.timer.elapsed() : 0;
+    const penalty = this.session ? this.session.penaltyMs : 0;
+    display.textContent = formatRunTime(elapsed + penalty);
+  }
+
+  /** Adds a time penalty and shows it, without ever touching the clock itself. */
+  _penalise(milliseconds) {
+    if (!this.session) return;
+    this.session.penaltyMs += milliseconds;
+    const badge = this.elements.timerBadge;
+    if (badge) {
+      const pop = this.elements.timerPop;
+      if (pop) pop.textContent = `+${Math.round(milliseconds / 1000)}`;
+      badge.classList.remove('is-penalised');
+      void badge.offsetWidth;
+      badge.classList.add('is-penalised');
+    }
+    this._renderTimer();
   }
 
   /**
@@ -117,6 +230,9 @@ export class TimeGame {
    */
   _resolveCorrect(result) {
     this.current.resolved = true;
+    // Freeze the run the instant the last answer lands, so the celebration
+    // animation and the results screen never add to the score.
+    if (this.session.roundIndex >= SESSION_ROUNDS - 1) this._pauseTimer();
     this._showTranscript(result.heard);
     this.progress.recordCorrect(this.current.time);
     this.session.correct += 1;
@@ -149,12 +265,19 @@ export class TimeGame {
     this._setFeedback('Try again');
     if (result.reason !== 'wrong-time' && result.reason !== 'bad-grammar') return;
 
+    // Only a completed attempt that was genuinely a wrong time or bad grammar
+    // is penalised. Short taps, silence, and recogniser failures reach the
+    // early return above, and live interim speech never reaches _judge at all.
     this.current.genuineWrong += 1;
+    this.session.genuineWrong += 1;
+    this._penalise(WRONG_ATTEMPT_PENALTY_MS);
     this.audio.playFeedback('incorrect');
     const revealAfter = this.progress.getSettings().revealAfter;
     if (this.current.genuineWrong < revealAfter) return;
 
     this.current.resolved = true;
+    this._penalise(REVEAL_PENALTY_MS);
+    if (this.session.roundIndex >= SESSION_ROUNDS - 1) this._pauseTimer();
     this.progress.recordMiss(this.current.time);
     this.session.missed.add(timeKey(this.current.time));
     this._setAnswerEnabled(false);
@@ -273,12 +396,16 @@ export class TimeGame {
     this.speech.cancel();
     this.audio.stopCharacter();
     this._setAnswerEnabled(false);
+    // Settings is a genuine pause, not part of the run: the time spent there
+    // is not the student's, and resuming continues from the same total.
+    this._pauseTimer();
   }
 
   resume() {
     if (!this.active) return;
     this.paused = false;
     this.refreshSettings();
+    if (!this.current?.resolved) this._startTimer();
     if (this.current?.resolved) {
       this._nextRound();
       return;
@@ -300,10 +427,27 @@ export class TimeGame {
     this.speech.cancel();
     this.audio.stopCharacter();
     this._setAnswerEnabled(false);
+    this._pauseTimer();
+
+    this.session.elapsedMs = this.timer.elapsed();
+    this.session.finalScoreMs = this.session.elapsedMs + this.session.penaltyMs;
+    // Only a completed run can set a best, and bests never cross difficulties.
+    const best = this.progress.recordRunScore(
+      this.session.difficulty,
+      this.session.finalScoreMs,
+    );
+
     const result = {
       levelId: this.session.levelId,
+      difficulty: this.session.difficulty,
       correct: this.session.correct,
       firstTry: this.session.firstTry,
+      genuineWrong: this.session.genuineWrong,
+      elapsedMs: this.session.elapsedMs,
+      penaltyMs: this.session.penaltyMs,
+      finalScoreMs: this.session.finalScoreMs,
+      bestMs: best.bestMs,
+      isNewBest: best.isNewBest,
       missed: [...this.session.missed],
       rounds: SESSION_ROUNDS,
     };
@@ -314,6 +458,10 @@ export class TimeGame {
     this.active = false;
     this.paused = false;
     this._clearAdvance();
+    // Abandoning back to the title discards the run: an unfinished run is
+    // never a best score.
+    this._pauseTimer();
+    this.timer.reset();
     this.speech.cancel();
     this.audio.stopCharacter();
     this.elements.stage.classList.remove('is-correct');

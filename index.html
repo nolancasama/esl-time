@@ -9,6 +9,7 @@
 <body>
   <section id="screen-title" class="screen title-screen is-visible" aria-labelledby="title-heading">
     <div class="title-plate">
+      <div id="title-clock" class="title-clock" aria-hidden="true"></div>
       <h1 id="title-heading">What Time Is It?</h1>
       <p class="title-jp">いま なんじ？</p>
       <button id="start-game" class="start-button" type="button">
@@ -35,6 +36,12 @@
         <span class="score-sep" aria-hidden="true">/</span>
         <span id="score-total" class="score-total">12</span>
         <span id="score-pop" class="score-pop" aria-hidden="true"></span>
+        <span class="hud-divider" aria-hidden="true"></span>
+        <span id="run-timer-badge" class="timer-chip">
+          <span class="timer-icon" aria-hidden="true">⏱</span>
+          <span id="run-timer" class="timer-value">0:00.0</span>
+          <span id="timer-pop" class="timer-pop" aria-hidden="true"></span>
+        </span>
       </div>
 
       <button id="game-settings" class="corner-button corner-right" type="button" aria-label="Settings">⚙</button>
@@ -74,12 +81,15 @@
   </section>
 
   <section id="screen-summary" class="screen summary-screen" aria-labelledby="summary-title">
-    <p class="eyebrow">SESSION COMPLETE</p>
+    <p class="eyebrow">FINISH!</p>
     <h2 id="summary-title">Nice work!</h2>
-    <p class="jp-copy">よくできました！</p>
+    <p id="summary-score" class="summary-score">0:00.0</p>
+    <p id="summary-new-best" class="summary-new-best" hidden>NEW BEST!</p>
     <div class="summary-stats">
-      <div class="summary-stat"><strong id="summary-correct">0</strong><span>Correct</span></div>
+      <div class="summary-stat"><strong id="summary-base">0:00.0</strong><span>Base time</span></div>
+      <div class="summary-stat"><strong id="summary-penalty">+0 sec</strong><span>Mistakes</span></div>
       <div class="summary-stat"><strong id="summary-first">0</strong><span>First try</span></div>
+      <div class="summary-stat"><strong id="summary-best">—</strong><span>Best</span></div>
     </div>
     <div class="practice-panel">
       <h3>Times to practise</h3>

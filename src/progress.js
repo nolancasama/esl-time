@@ -99,9 +99,21 @@ function sanitizeSettings(value = {}) {
   return settings;
 }
 
+/** Best completed-run scores in milliseconds, kept apart per difficulty. */
+function sanitizeBests(value) {
+  const bests = {};
+  if (!value || typeof value !== 'object') return bests;
+  for (const difficulty of ['easy', 'medium', 'hard', 'mixed']) {
+    const ms = Number(value[difficulty]);
+    if (Number.isFinite(ms) && ms > 0) bests[difficulty] = Math.round(ms);
+  }
+  return bests;
+}
+
 function sanitizeState(value) {
   const state = {
     times: {},
+    bests: sanitizeBests(value?.bests),
     settings: sanitizeSettings(value?.settings),
   };
 
@@ -156,12 +168,37 @@ export class Progress {
   constructor() {
     const state = readState();
     this.times = state.times;
+    this.bests = state.bests;
     this.settings = state.settings;
     memoryState = cloneState(state);
   }
 
   save() {
-    writeState({ times: this.times, settings: this.settings });
+    writeState({ times: this.times, bests: this.bests, settings: this.settings });
+  }
+
+  /** Best completed-run score for one difficulty, or null. */
+  getBest(difficulty) {
+    const ms = this.bests[difficulty];
+    return Number.isFinite(ms) ? ms : null;
+  }
+
+  /**
+   * Record a finished run. Scores are compared numerically and never across
+   * difficulties, and a slower run leaves the existing best alone.
+   */
+  recordRunScore(difficulty, finalScoreMs) {
+    const score = Math.round(Number(finalScoreMs));
+    const previous = this.getBest(difficulty);
+    if (!Number.isFinite(score) || score <= 0) {
+      return { bestMs: previous, isNewBest: false };
+    }
+    const isNewBest = previous === null || score < previous;
+    if (isNewBest) {
+      this.bests[difficulty] = score;
+      this.save();
+    }
+    return { bestMs: isNewBest ? score : previous, isNewBest };
   }
 
   getSettings() {
@@ -256,6 +293,7 @@ export class Progress {
   /** Reset learning records while retaining the teacher's chosen settings. */
   reset() {
     this.times = {};
+    this.bests = {};
     this.save();
   }
 }

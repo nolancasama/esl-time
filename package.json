@@ -6,6 +6,6 @@
   "description": "2D ESL telling-time game for Japanese elementary EFL students.",
   "scripts": {
     "serve": "python -m http.server 8000",
-    "test": "node src/time-match.test.mjs"
+    "test": "node src/time-match.test.mjs && node src/data/session-times.test.mjs"
   }
 }
