@@ -8,6 +8,29 @@ V1 is deliberately **placeholder-art only**. The point of this version is to get
 the round loop, the speech path, the clock generation, the scoring grammar and
 the scene architecture solid *before* any artwork exists.
 
+## For teachers and school IT administrators / 先生・学校の情報担当者向け
+
+**English:** This is a free, browser-based educational activity designed for
+elementary-school English as a foreign language (EFL) lessons. Students practise
+reading analog clocks and saying times in English. There is an optional timed
+review activity. The site requires no student account and has no advertising
+or third-party analytics scripts in this repository. It uses local browser
+storage for learning progress; spoken answers may be handled by the browser's
+speech recognition service when microphone input is enabled. A typed-answer
+fallback is available.
+
+**日本語:** このサイトは、小学校の外国語活動・外国語科の授業で使うための
+無料の英語学習教材です。児童がアナログ時計を読み、時刻を英語で言う練習を
+行います。復習用の時間制限付き活動もあります。児童のアカウント登録は不要です。
+本リポジトリには広告や外部アクセス解析スクリプトはありません。
+学習記録はブラウザ内に保存されます。マイクを利用する場合、音声認識は
+ブラウザの音声認識サービスで処理されることがあります。文字入力でも回答できます。
+
+**School filtering / フィルタリング:** If access is restricted, school
+administrators should review the site's classification and approve the deployed
+URL through the school's normal filtering policy. Educational metadata does
+not bypass school security settings.
+
 ## Run
 
 Open `index.html`, or serve the folder with any static server:
