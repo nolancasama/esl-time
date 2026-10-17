@@ -18,6 +18,7 @@ import { SpeedTimeSource, formatDigitalTime } from './data/speed-times.js';
 import { renderDigitalClock } from './digital-clock.js';
 import { HoldToTalk, MIC, speechSupported } from './speech.js';
 import { AudioManager } from './audio.js';
+import { createPronunciationHints } from './pronunciation-hints.js';
 
 export const SPEED_DURATION_MS = 60000;
 
@@ -65,6 +66,7 @@ export class SpeedRound {
       onUnavailable: () => this._useTypedFallback(),
     });
 
+    this.coach = createPronunciationHints({ feedback: elements.feedback, speech: this.speech, mode: 'speed' });
     elements.typedForm.addEventListener('submit', (event) => {
       event.preventDefault();
       const answer = elements.typedAnswer.value.trim();
@@ -154,6 +156,7 @@ export class SpeedRound {
   }
 
   _nextTarget() {
+    this.coach.clear();
     this.nextTimer = null;
     if (!this.active || this.expired) return;
     this.resolving = false;
@@ -180,7 +183,7 @@ export class SpeedRound {
     this._resolveCorrect();
   }
 
-  _judge(transcripts, { duration = null } = {}) {
+  _judge(transcripts, { duration = null, error } = {}) {
     this.attemptOpen = false;
     if (!this.active) return;
     // A live hypothesis already carried this attempt; the release must not
@@ -193,6 +196,7 @@ export class SpeedRound {
     // Very short holds are motor slips, not evidence that the child was wrong.
     const alternatives = duration !== null && duration < ACCIDENTAL_TAP_MS ? [] : transcripts;
     const result = matchTime(this.target, alternatives);
+    this.coach.attempt(this.target, alternatives, { duration, error }, result);
     if (result.reason === 'match') {
       this._resolveCorrect();
       return;
@@ -210,6 +214,7 @@ export class SpeedRound {
   }
 
   _resolveCorrect() {
+    this.coach.clear();
     this.resolving = true;
     this.attemptOpen = false;
     this.state.correct += 1;
@@ -331,6 +336,7 @@ export class SpeedRound {
   }
 
   _finish() {
+    this.coach.clear();
     if (this.finished) return;
     this.finished = true;
     this.active = false;
@@ -354,6 +360,7 @@ export class SpeedRound {
 
   /** Leave the mode. Nothing may keep running once the screen is gone. */
   stop() {
+    this.coach.destroy();
     this.active = false;
     this.finished = true;
     this.expired = false;

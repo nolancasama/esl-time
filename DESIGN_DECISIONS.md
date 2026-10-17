@@ -1,5 +1,28 @@
 # Design Decisions
 
+## 2026-10-17 — Japanese pronunciation hints in both clock activities
+
+The regular clock game (including difficult practice) and digital speed round
+share the vendored pronunciation coach. Its compact Japanese card sits directly
+under “もういちど！” in the existing answer dock, above the microphone, and uses
+the game's colours and installed system fonts. Listen models the English word;
+there is no second retry control. The note directs children back to Hold to Talk.
+
+Only completed speech attempts enter the adapter, after the frozen time matcher
+has returned its verdict. Accepted spoken models include digital, whole-hour,
+named noon/midnight and past/to forms; focus follows the attempted structural
+family so optional forms do not become missing-word hints. The full number/time
+vocabulary identifies a different clock answer without pronunciation coaching.
+The vendor owns all pronunciation analysis, hint ordering and classification.
+
+Typed fallback, interim hypotheses, silence and accidental short taps are
+excluded. Existing live success, scoring, misses, reveal delays and recognition
+settings are preserved. Hints clear on success, new targets, reveal, pause and
+results, and are destroyed on quit/restart. Listen is blocked during a hold;
+TTS disables/cancels HoldToTalk and restores its previous availability afterward.
+The coach is optional: the top-level flag, ?coach=off, a missing vendor script or
+adapter initialization failure leave gameplay available without a coaching UI.
+
 This file records meaningful product, UX, visual, architectural, or behavioral decisions for this project.
 
 For each significant decision, record:

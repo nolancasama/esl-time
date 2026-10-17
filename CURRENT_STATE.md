@@ -7,6 +7,16 @@ frozen matcher.
 
 ## What Exists
 
+- Optional Japanese pronunciation coaching in both regular clock play (including
+  difficult practice) and the digital speed round. A secondary card appears
+  below the existing retry feedback for completed speech near misses. Typed
+  answers and live/interim results are excluded. The vendored coach supplies
+  analysis and ranked hints; the game supplies its verdict and time vocabulary.
+  Listen uses English TTS with HoldToTalk disabled/cancelled during playback.
+  Hints clear at target/lifecycle boundaries; missing/disabled coaching fails soft.
+  `npm test` includes adapter checks and `npm run test:coach` drives mocked speech
+  on the real page, saving responsive evidence under `.tmp/coach-screens/`.
+
 - Four sibling screens: title, game, session summary, and options.
 - Title screen is deliberately bare: title lockup, large `スタート`, smaller
   `オプション`, on a light tonal background with a slow abstract drift. No
@@ -57,6 +67,13 @@ frozen matcher.
   same required "it's".
 
 ## Verified
+
+- 2026-10-17 pronunciation integration: `npm test` passes all 517 existing
+  assertions plus 11 adapter checks. `npm run test:coach` passes with mocked
+  final SpeechRecognition results on the real page in both activities; it also
+  checks Listen hold/TTS locking, pause/quit cleanup and disabled/missing-vendor
+  gameplay. Four screenshots are saved in `.tmp/coach-screens/` at 360px and
+  1280px widths. Actual microphone recognition still needs a real-device pass.
 
 - 473 matcher, 26 session-deck and 18 speed-deck assertions pass (`npm test`). Includes: curly/smart-quote
   apostrophes now normalize like straight ones, and saying "it's"/"its"/"it

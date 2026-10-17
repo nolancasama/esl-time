@@ -5,6 +5,7 @@ import { createScheduler } from './scheduler.js';
 import { mountScene } from './scene.js';
 import { HoldToTalk, MIC, speechSupported } from './speech.js';
 import { AudioManager } from './audio.js';
+import { createPronunciationHints } from './pronunciation-hints.js';
 
 export const SESSION_ROUNDS = 12;
 
@@ -93,6 +94,7 @@ export class TimeGame {
       onUnavailable: () => this._useTypedFallback(),
     });
 
+    this.coach = createPronunciationHints({ feedback: elements.feedback, speech: this.speech, mode: 'regular' });
     elements.typedForm.addEventListener('submit', (event) => {
       event.preventDefault();
       const answer = elements.typedAnswer.value.trim();
@@ -147,6 +149,7 @@ export class TimeGame {
 
   _nextRound() {
     if (!this.active || this.paused) return;
+    this.coach.clear();
     this._clearAdvance();
     this.session.roundIndex += 1;
     if (this.session.roundIndex >= SESSION_ROUNDS) {
@@ -277,6 +280,7 @@ export class TimeGame {
    * event a harmless no-op.
    */
   _resolveCorrect(result) {
+    this.coach.clear();
     this.current.resolved = true;
     // Freeze the run the instant the last answer lands, so the celebration
     // animation and the results screen never add to the score.
@@ -297,12 +301,13 @@ export class TimeGame {
     }, 700);
   }
 
-  _judge(transcripts, { duration = null } = {}) {
+  _judge(transcripts, { duration = null, error } = {}) {
     if (!this.active || this.paused || !this.current || this.current.resolved) return;
 
     // Very short holds are motor slips, not evidence that the child was wrong.
     const alternatives = duration !== null && duration < ACCIDENTAL_TAP_MS ? [] : transcripts;
     const result = matchTime(this.current.time, alternatives);
+    this.coach.attempt(this.current.time, alternatives, { duration, error }, result);
 
     if (result.reason === 'match') {
       this._resolveCorrect(result);
@@ -330,6 +335,7 @@ export class TimeGame {
     this.session.missed.add(timeKey(this.current.time));
     this._setAnswerEnabled(false);
     this._setFeedback(spokenForm(this.current.time), 'reveal');
+    this.coach.clear();
     this.advanceTimer = setTimeout(() => this._nextRound(), 1900);
   }
 
@@ -483,6 +489,7 @@ export class TimeGame {
   pause() {
     if (!this.active) return;
     this.paused = true;
+    this.coach.clear();
     this._clearAdvance();
     this.speech.cancel();
     this.audio.stopCharacter();
@@ -515,6 +522,7 @@ export class TimeGame {
   }
 
   _complete() {
+    this.coach.clear();
     this._clearAdvance();
     this.active = false;
     this.speech.cancel();
@@ -548,6 +556,7 @@ export class TimeGame {
   }
 
   stop() {
+    this.coach.destroy();
     this.active = false;
     this.paused = false;
     this._clearAdvance();

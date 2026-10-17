@@ -117,6 +117,7 @@ export class HoldToTalk {
     };
     recognition.onerror = (event) => {
       const reason = event?.error;
+      this.error = reason;
       if (reason === 'not-allowed' || reason === 'service-not-allowed') {
         this._giveUp(MIC.DENIED);
       } else if (reason === 'audio-capture') {
@@ -148,6 +149,7 @@ export class HoldToTalk {
     this.finished = false;
     this.alternatives = [];
     this.startedAt = performance.now();
+    this.error = undefined;
     this.onState(MIC.LISTENING);
     this.timeout = setTimeout(() => {
       this._releaseCapture();
@@ -182,7 +184,7 @@ export class HoldToTalk {
     const duration = Math.max(0, performance.now() - this.startedAt);
     this.startedAt = 0;
     this.onState(MIC.IDLE);
-    this.onResult([...this.alternatives], { duration });
+    this.onResult([...this.alternatives], { duration, error: this.error });
     this.recognition = null;
   }
 

@@ -443,6 +443,16 @@ h1, h2 { margin: 0; font-size: clamp(36px, 6vw, 68px); line-height: 1; }
 .feedback-line.is-correct { color: #7af0b4; }
 .feedback-line.is-reveal { color: #ffd38c; }
 
+/* Secondary coaching stays in the dock's normal flow, above the microphone. */
+.pronunciation-hints { width: min(100%, 460px); }
+.pronunciation-hints:empty { display: none; }
+.pronunciation-hints .epc-card { padding: 10px 14px; border: 1px solid var(--line); font-size: 14px; }
+.pronunciation-hints .epc-word { margin-bottom: 4px; font-size: 22px; }
+.pronunciation-hints .epc-hint { margin-bottom: 6px; }
+.pronunciation-hints .epc-note { margin-bottom: 6px; font-size: 12px; }
+.pronunciation-hints .epc-button { min-height: 36px; padding: 4px 10px; border-radius: 10px; }
+.pronunciation-hints:has(.epc-card[hidden]) { display: none; }
+
 .speech-controls { display: flex; align-items: center; justify-content: center; }
 .hold-button {
   position: relative;
