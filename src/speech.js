@@ -1,3 +1,5 @@
+import { createRecognizer, isRecognitionSupported } from '../vendor/esl-stt/esl-stt.mjs';
+
 const MAX_ALTERNATIVES = 5;
 const MAX_HOLD_MS = 5000;
 
@@ -10,13 +12,12 @@ export const MIC = {
 };
 
 export function speechSupported() {
-  return typeof window !== 'undefined'
-    && Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+  return isRecognitionSupported();
 }
 
 /** One recognition session per physical hold; the mic is closed at every seam. */
 export class HoldToTalk {
-  constructor(button, { onResult, onLiveResult, onState, onUnavailable } = {}) {
+  constructor(button, { onResult, onLiveResult, onState, onUnavailable, SpeechRecognition } = {}) {
     this.button = button;
     this.onResult = onResult || (() => {});
     this.onLiveResult = onLiveResult || (() => {});
@@ -26,10 +27,11 @@ export class HoldToTalk {
     this.active = false;
     this.pointerId = null;
     this.recognition = null;
+    this.SpeechRecognition = SpeechRecognition;
+    this.recognitionEnded = false;
     this.startedAt = 0;
     this.alternatives = [];
     this.timeout = null;
-    this.finishTimer = null;
     this.finished = false;
 
     this._pointerDown = (event) => {
@@ -78,6 +80,12 @@ export class HoldToTalk {
     if (!this.enabled) this.cancel();
   }
 
+  // Read-only semantic state for lifecycle/acceptance harnesses. An early
+  // native end still counts as listening until the physical hold ends.
+  get state() {
+    return this.active ? 'listening' : this.recognition?.state ?? 'idle';
+  }
+
   _releaseCapture() {
     if (this.pointerId === null) return;
     const pointerId = this.pointerId;
@@ -88,21 +96,8 @@ export class HoldToTalk {
   }
 
   _createRecognition() {
-    const Implementation = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!Implementation) return null;
-    const recognition = new Implementation();
-    recognition.lang = 'en-US';
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = MAX_ALTERNATIVES;
-    recognition.onresult = (event) => {
-      const result = event.results[event.results.length - 1];
-      if (!result) return;
-      const alternatives = [];
-      for (let index = 0; index < Math.min(result.length, MAX_ALTERNATIVES); index += 1) {
-        const transcript = result[index]?.transcript;
-        if (transcript) alternatives.push(transcript);
-      }
+    const receive = (results) => {
+      const alternatives = results.map(({ transcript }) => transcript);
       if (!alternatives.length) return;
       this.alternatives = alternatives;
       // Interim hypotheses are offered for judging DURING the hold, so a
@@ -112,54 +107,60 @@ export class HoldToTalk {
       // isFinal is passed for information but must not gate acceptance —
       // an interim hypothesis can already be a complete correct answer.
       if (this.active) {
-        this.onLiveResult([...alternatives], { isFinal: Boolean(result.isFinal) });
+        this.onLiveResult([...alternatives], { isFinal: results.every(result => result.final) });
       }
     };
-    recognition.onerror = (event) => {
-      const reason = event?.error;
-      this.error = reason;
-      if (reason === 'not-allowed' || reason === 'service-not-allowed') {
-        this._giveUp(MIC.DENIED);
-      } else if (reason === 'audio-capture') {
-        this._giveUp(MIC.ERROR);
-      }
-    };
-    // Some engines end after producing a final hypothesis even while the key
-    // or finger remains down. Keep the answer pending until the hold ends.
-    recognition.onend = () => {
-      if (!this.active) this._finish();
-    };
-    return recognition;
+    return createRecognizer({
+      SpeechRecognition: this.SpeechRecognition,
+      lang: 'en-US', continuous: false, interimResults: true,
+      maxAlternatives: MAX_ALTERNATIVES, timeoutMs: MAX_HOLD_MS,
+      onInterim: receive,
+      onFinal: receive,
+      onError: ({ code, kind }) => {
+        this.error = code;
+        // Preserve the game's code-specific fallback policy, rather than
+        // adopting every unavailable classification or fallbackSuggested.
+        if (kind === 'unavailable' && ['not-allowed', 'service-not-allowed'].includes(code)) {
+          this._giveUp(MIC.DENIED);
+        } else if (code === 'audio-capture') {
+          this._giveUp(MIC.ERROR);
+        }
+      },
+      onEnd: ({ alternatives, reason }) => {
+        if (reason === 'cancelled' || this.finished) return;
+        if (alternatives.length) this.alternatives = alternatives.map(({ transcript }) => transcript);
+        // Native recognition may end before release. Keep the physical hold
+        // open (including its time limit) until the child lets go.
+        this.recognitionEnded = true;
+        if (!this.active) this._finish();
+      },
+    });
   }
 
   _start() {
     if (!this.enabled || this.active) return;
-    if (!speechSupported()) {
+    if (!isRecognitionSupported({ SpeechRecognition: this.SpeechRecognition })) {
       this._giveUp(MIC.UNSUPPORTED);
       return;
     }
 
+    // A new hold supersedes a previous stop still waiting for its end event.
+    this.recognition?.destroy();
     this.recognition = this._createRecognition();
-    if (!this.recognition) {
-      this._giveUp(MIC.UNSUPPORTED);
-      return;
-    }
-
+    this.recognitionEnded = false;
     this.active = true;
     this.finished = false;
     this.alternatives = [];
     this.startedAt = performance.now();
     this.error = undefined;
     this.onState(MIC.LISTENING);
+    // The adapter caps native recording; this timer also caps a physical hold
+    // after the native engine has already ended and cleared its own timer.
     this.timeout = setTimeout(() => {
       this._releaseCapture();
       this._stop();
     }, MAX_HOLD_MS);
-    try {
-      this.recognition.start();
-    } catch {
-      this._giveUp(MIC.ERROR);
-    }
+    if (!this.recognition.start() && !this.finished) this._giveUp(MIC.ERROR);
   }
 
   _stop() {
@@ -168,38 +169,32 @@ export class HoldToTalk {
     clearTimeout(this.timeout);
     this.timeout = null;
     this.onState(MIC.IDLE);
-    try { this.recognition?.stop(); } catch { this._finish(); }
-    // Some implementations never deliver onend after a gesture cancellation.
-    this.finishTimer = setTimeout(() => this._finish(), 400);
+    if (this.recognitionEnded) this._finish();
+    else this.recognition?.stop(); // esl-stt owns the 400 ms end-event grace.
   }
 
   _finish() {
-    if (this.finished || !this.startedAt) return;
+    if (this.finished) return;
     this.finished = true;
     this.active = false;
     clearTimeout(this.timeout);
-    clearTimeout(this.finishTimer);
     this.timeout = null;
-    this.finishTimer = null;
     const duration = Math.max(0, performance.now() - this.startedAt);
     this.startedAt = 0;
     this.onState(MIC.IDLE);
-    this.onResult([...this.alternatives], { duration, error: this.error });
+    this.recognition?.destroy();
     this.recognition = null;
+    this.onResult([...this.alternatives], { duration, error: this.error });
   }
 
   _giveUp(state) {
     this._releaseCapture();
-    if (this.recognition) {
-      this.recognition.onend = null;
-      try { this.recognition.abort(); } catch { /* already closed */ }
-    }
+    this.finished = true;
+    this.recognition?.destroy();
     this.active = false;
     this.startedAt = 0;
     clearTimeout(this.timeout);
-    clearTimeout(this.finishTimer);
     this.timeout = null;
-    this.finishTimer = null;
     this.recognition = null;
     this.onState(state);
     this.onUnavailable(state);
@@ -207,17 +202,12 @@ export class HoldToTalk {
 
   cancel() {
     this._releaseCapture();
-    if (this.recognition) {
-      this.recognition.onend = null;
-      try { this.recognition.abort(); } catch { /* already closed */ }
-    }
-    this.active = false;
     this.finished = true;
+    this.recognition?.destroy();
+    this.active = false;
     this.startedAt = 0;
     clearTimeout(this.timeout);
-    clearTimeout(this.finishTimer);
     this.timeout = null;
-    this.finishTimer = null;
     this.recognition = null;
     this.onState(MIC.IDLE);
   }
@@ -237,3 +227,4 @@ export class HoldToTalk {
     button.removeEventListener('contextmenu', this._blockTouch);
   }
 }
+

@@ -7,6 +7,12 @@ frozen matcher.
 
 ## What Exists
 
+- Recognition uses the unchanged vendored esl-stt v1.0.0 (d3761e3) ESM bundle.
+  HoldToTalk preserves live ranked hypotheses, release completion, five-second
+  holds, cancellation and the existing code-specific typed fallback policy.
+  Matching remains in the frozen time-match.js. Read-only HoldToTalk.state
+  exposes the hold/adapter lifecycle to the controller harness.
+
 - Optional Japanese pronunciation coaching in both regular clock play (including
   difficult practice) and the digital speed round. A secondary card appears
   below the existing retry feedback for completed speech near misses. Typed
@@ -67,6 +73,12 @@ frozen matcher.
   same required "it's".
 
 ## Verified
+
+- 2026-10-23 recognition integration: `npm test` includes deterministic
+  fake-SpeechRecognition HoldToTalk checks for ranked live/final delivery,
+  release, timeout, cancellation cleanup, keyboard/pointer paths and errors.
+  Controller-owned `npm run test:coach` acceptance was not run for this change;
+  no new visual evidence was requested or produced.
 
 - 2026-10-17 pronunciation integration: `npm test` passes all 517 existing
   assertions plus 11 adapter checks. `npm run test:coach` passes with mocked

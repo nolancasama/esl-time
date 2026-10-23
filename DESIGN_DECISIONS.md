@@ -475,3 +475,32 @@ the speed result, so the three calm screens read as one product.
 Implementation note: `justify-content: safe center` on that canvas. Plain
 `center` overflows in BOTH directions when the content is taller than the
 screen, which put the top of the completion screen out of reach at 460 px tall.
+
+## 2026-10-23 — esl-stt v1.0.0 for recognition only
+
+HoldToTalk uses createRecognizer from the unchanged vendored ESM bundle and
+types, pinned as esl-stt v1.0.0 (d3761e3). No build step or network import is
+needed. Matching stays in the frozen time-match.js: esl-stt has no time/number
+profile, and the top-hypothesis grammar rule is specific to this game. Ranked
+transcript strings still reach matchTime in recognizer rank order. Both interim
+and final hypotheses are offered live for success-only judging; completed
+attempts wait for release, including when the native recognizer ends early.
+
+The game keeps its existing error policy using classified error codes/kinds:
+not-allowed/service-not-allowed trigger DENIED and typed fallback; audio-capture
+triggers ERROR and typed fallback. Missing recognition triggers UNSUPPORTED;
+a failed start call (classified start-failed/transient) still triggers ERROR
+and fallback. All other reported codes remain retryable, including a reported
+start-failed code, language-not-supported and a reported unsupported error.
+The latter two differ from esl-stt's unavailable classification. The game's
+fallback does not follow fallbackSuggested, including after three empty
+sessions. Silent sessions still deliver an empty retry on release; esl-stt
+also supplies no-speech metadata when silence ends without a native error
+event. This does not alter matching, penalties or coaching for empty attempts.
+
+The adapter owns native handlers, the five-second recording cap and the 400 ms
+stop grace. A host timer also limits physical holds after an early native end.
+Cancellation/disable/dispose destroy the adapter and discard pending results;
+Listen playback continues to use setEnabled(false) to cancel and pause speech.
+The read-only HoldToTalk.state getter exposes listening during a physical hold,
+stopping while awaiting a released attempt, and idle afterward for harnesses.
